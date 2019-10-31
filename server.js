@@ -3,6 +3,7 @@ const mainRouter = require('find-my-way')()
 const subRouter = require('find-my-way')()
 const config = require('./config/config')
 
+mainRouter.on('POST',  '/api/accounts',                  require('./commands/account/create.js'))
 mainRouter.on('GET',  '/api/collections',               require('./commands/account/collections/search.js'))
 mainRouter.on('POST', '/api/collections',               require('./commands/account/collections/create.js'))
 mainRouter.on('PUT',  '/api/collections/:collectionId', require('./commands/account/collections/update.js'))
