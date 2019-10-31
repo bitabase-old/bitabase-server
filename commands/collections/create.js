@@ -17,88 +17,87 @@ module.exports = async function (req, res, params) {
   try {
     const data = await parseJsonBody(req)
     const account = req.headers.host.split('.')[0]
-  
+
     const collection = await getCollection(account, params.collectionId)
 
-    const {configFile, config} = collection
-  
+    const { configFile, config } = collection
+
     const db = await connect(configFile + '.db')
-  
-    let user = await getUser(db, req.headers['username'], req.headers['password'])
-  
+
+    const user = await getUser(db, req.headers.username, req.headers.password)
+
     // Validation
-    let errors = {}
+    const errors = {}
     Object.keys(config.schema).forEach(field => {
       if (config.schema[field].includes('required') && !data[field]) {
         errors[field] = errors[field] || []
         errors[field].push('required')
-        return
       }
     })
-  
+
     Object.keys(data).forEach(field => {
       if (!config.schema[field]) {
         errors[field] = errors[field] || []
         errors[field].push('unknown field')
         return
       }
-  
+
       config.schema[field].forEach(checkFn => {
         if (checkFn === 'required') {
           return
         }
-  
+
         if (checkFn === 'string') {
           checkFn = 'typeOf(value) == "string" ? null : "must be string"'
         }
-  
+
         if (checkFn === 'array') {
           checkFn = 'typeOf(value) == "Array" ? null : "must be array"'
         }
-  
+
         const invalid = evaluate(checkFn, {
           value: data[field],
           user
         })
-  
+
         if (invalid) {
           errors[field] = errors[field] || []
           errors[field].push(invalid)
         }
       })
     })
-  
+
     if (Object.values(errors).length > 0) {
       return sendError(400, errors, res)
     }
-  
+
     // Rules
-    if (config.rules && config.rules['POST']) {
+    if (config.rules && config.rules.POST) {
       const ruleErrors = []
-      ;(config.rules['POST'] || []).forEach(rule => {
+      ;(config.rules.POST || []).forEach(rule => {
         const result = evaluate(rule, {
           data, user
         })
-  
+
         if (result) {
           ruleErrors.push(result)
         }
       })
-  
+
       if (Object.values(ruleErrors).length > 0) {
         return sendError(400, ruleErrors, res)
       }
     }
-  
+
     // Mutations
     Object.keys(data).forEach(field => {
       if (config.schema[field].includes('array')) {
         data[field] = JSON.stringify(data[field])
       }
     })
-  
+
     ;(config.mutations || []).forEach(mutation => {
-      const result = evaluate(mutation, {
+      evaluate(mutation, {
         data, user
       })
     })
@@ -112,20 +111,20 @@ module.exports = async function (req, res, params) {
     `
     const stmt = await db.prepare(sql)
     const id = uuidv4()
-    stmt.run.apply(stmt, [id, ...Object.entries(data).map(o => o[1])])
+    stmt.run(...[id, ...Object.entries(data).map(o => o[1])])
     await stmt.finalize()
-  
-    await db.close()  
-  
+
+    await db.close()
+
     // Presenters
     ;(config.presenters || []).forEach(presenter => {
-      const result = evaluate(presenter, {
+      evaluate(presenter, {
         data, user
       })
     })
 
     res.writeHead(201)
-    res.end(JSON.stringify(Object.assign(data, {id})))
+    res.end(JSON.stringify(Object.assign(data, { id })))
   } catch (error) {
     if (!error.friendly) {
       console.log(error)

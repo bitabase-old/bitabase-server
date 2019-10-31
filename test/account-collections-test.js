@@ -10,7 +10,7 @@ test('list collections: empty', async t => {
   await server.start()
 
   const response = await httpRequest('/api/collections', {
-    method: 'get',
+    method: 'get'
   })
 
   t.deepEqual(response.data, {
@@ -41,7 +41,7 @@ test('list collections: one db', async t => {
   })
 
   const response = await httpRequest('/api/collections', {
-    method: 'get',
+    method: 'get'
   })
 
   t.deepEqual(response.data, {
@@ -51,7 +51,6 @@ test('list collections: one db', async t => {
 
   await server.stop()
 })
-
 
 test('update collection', async t => {
   t.plan(2)
@@ -63,7 +62,7 @@ test('update collection', async t => {
   await httpRequest('/api/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      id: 'test'
     }
   })
 
@@ -74,14 +73,13 @@ test('update collection', async t => {
 
       schema: {
         newfield1: ['required', 'string'],
-        newfield2: ['required', 'string'],
+        newfield2: ['required', 'string']
       }
     },
     validateStatus: status => status < 500
   })
-  
-  t.equal(addFieldsResponse.status, 200)
 
+  t.equal(addFieldsResponse.status, 200)
 
   const removeFieldResponse = await httpRequest('/api/collections/test', {
     method: 'put',
@@ -94,7 +92,7 @@ test('update collection', async t => {
     },
     validateStatus: status => status < 500
   })
-  
+
   t.equal(removeFieldResponse.status, 200)
 
   await server.stop()
@@ -118,17 +116,17 @@ test('create new collection', async t => {
         password: ['required', 'string'],
         permissions: ['required', 'array']
       },
-    
+
       // These will be run on each record before presenting back to the client
       presenters: [
         'delete data.password'
       ],
-    
+
       // These will be run on each record before saving to the database
       mutations: [
         'data.password = bcrypt(data.password)'
       ],
-    
+
       // You can also set rules for each method
       rules: {
         POST: [
@@ -148,7 +146,7 @@ test('create new collection', async t => {
     },
     validateStatus: status => status < 500
   })
-  
+
   t.equal(response.status, 201)
 
   await server.stop()

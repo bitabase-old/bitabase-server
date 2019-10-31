@@ -25,9 +25,9 @@ test('list items in collection when empty', async t => {
 
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
-    method: 'get',
+    method: 'get'
   })
 
   t.deepEqual(response.data, {
@@ -60,7 +60,7 @@ test('create item in collection with build in validation error', async t => {
   // Make request
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -71,9 +71,9 @@ test('create item in collection with build in validation error', async t => {
 
   t.equal(response.status, 400)
   t.deepEqual(response.data, {
-    testString: [ 'must be string' ],
-    testRequired: [ 'required' ],
-    testRequiredAgain: [ 'required' ],
+    testString: ['must be string'],
+    testRequired: ['required'],
+    testRequiredAgain: ['required']
   })
 
   await server.stop()
@@ -100,7 +100,7 @@ test('create item in collection without using all fields', async t => {
   // Make request
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -135,7 +135,7 @@ test('create item in collection with custom validation error', async t => {
   // Make request
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -145,7 +145,7 @@ test('create item in collection with custom validation error', async t => {
 
   t.equal(response.status, 400)
   t.deepEqual(response.data, {
-    test: [ 'must be something' ] 
+    test: ['must be something']
   })
 
   await server.stop()
@@ -175,7 +175,7 @@ test('create item in collection with customer presenter', async t => {
   // Make request
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -192,7 +192,7 @@ test('create item in collection with customer presenter', async t => {
   // Find record
   const found = await httpRequest(`/test/${response.data.id}`, {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     }
   })
 
@@ -224,7 +224,7 @@ test('create item in collection with customer mutation', async t => {
   // Make request
   const response = await httpRequest('/test', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -239,7 +239,7 @@ test('create item in collection with customer mutation', async t => {
   // Find record
   const found = await httpRequest(`/test/${response.data.id}`, {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     }
   })
 

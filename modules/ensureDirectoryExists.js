@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 
-function ensureDirectoryExists (filename, opts={}) {
+function ensureDirectoryExists (filename, opts = {}) {
   return new Promise((resolve, reject) => {
     const foldername = opts.resolve === true ? path.dirname(filename) : filename
 

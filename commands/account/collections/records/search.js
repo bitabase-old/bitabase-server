@@ -1,5 +1,4 @@
 const connect = require('../../modules/db')
-const parseJsonBody = require('../../modules/parseJsonBody')
 
 module.exports = async function (req, res, params) {
   const db = await connect('test.db')
@@ -14,8 +13,8 @@ module.exports = async function (req, res, params) {
 
   const rows = await db.all('SELECT rowid AS id, info FROM lorem')
   console.log(rows)
-  
-  await db.close()  
+
+  await db.close()
 
   res.end('{}')
 }

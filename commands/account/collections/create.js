@@ -1,4 +1,4 @@
-const {promisify} = require('util')
+const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
 
@@ -38,17 +38,17 @@ module.exports = async function (req, res, params) {
   // Validation
   const errors = validate(data)
   if (errors) {
-    return sendError(422, {errors}, res)
+    return sendError(422, { errors }, res)
   }
 
   // Configuration
-  const configFile = path.resolve(__dirname, '../../../data', `example/${data.id}.json`) 
+  const configFile = path.resolve(__dirname, '../../../data', `example/${data.id}.json`)
 
-  await ensureDirectoryExists(configFile, {resolve: true})
+  await ensureDirectoryExists(configFile, { resolve: true })
 
   const existingConfig = await getConfig(configFile)
   if (existingConfig) {
-    return sendError(422, {errors: {id: 'already taken'}}, res)
+    return sendError(422, { errors: { id: 'already taken' } }, res)
   }
 
   await writeFile(configFile, JSON.stringify(data))
@@ -62,7 +62,7 @@ module.exports = async function (req, res, params) {
     })
     .join(', ')
 
-  const idField = `id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE`
+  const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
 
   await db.run(`CREATE TABLE ${data.id} (${idField} ${fields ? ', ' + fields : ''})`)
   await db.close()

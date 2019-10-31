@@ -1,8 +1,7 @@
-const {promisify} = require('util')
+const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
 const access = promisify(fs.access)
-const readFile = promisify(fs.readFile)
 
 const connect = require('../../modules/db')
 
@@ -16,31 +15,29 @@ function sendError (statusCode, message, res) {
 module.exports = async function (req, res, params) {
   const account = req.headers.host.split('.')[0]
 
-  if (account.match(/[^a-z0-9]/gi,'')) {
+  if (account.match(/[^a-z0-9]/gi, '')) {
     console.log('Invalid subdomain')
     return sendError(404, {}, res)
   }
 
-  if (params.collectionId.match(/[^a-z0-9]/gi,'')) {
+  if (params.collectionId.match(/[^a-z0-9]/gi, '')) {
     console.log('Invalid collection ID')
     return sendError(404, {}, res)
   }
 
-  const configFile = path.resolve(__dirname, `../../data/${account}/${params.collectionId}`) 
-  
+  const configFile = path.resolve(__dirname, `../../data/${account}/${params.collectionId}`)
+
   try {
     await access(configFile + '.json', fs.constants.F_OK)
   } catch (err) {
     return sendError(404, {}, res)
   }
 
-  const config = await readFile(configFile + '.json', 'utf8')
-
   const db = await connect(configFile + '.db')
 
   const rows = await db.all(`SELECT * FROM ${params.collectionId}`)
-  
-  await db.close()  
+
+  await db.close()
 
   res.end(JSON.stringify({
     count: rows.length,

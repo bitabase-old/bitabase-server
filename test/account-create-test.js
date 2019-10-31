@@ -10,7 +10,7 @@ test('account: create a new account with validation errors', async t => {
   await server.start()
 
   const response = await httpRequest('/api/accounts', {
-    method: 'post',
+    method: 'post'
   })
 
   t.equal(response.status, 422)
@@ -42,9 +42,8 @@ test('account: create a new account', async t => {
   t.equal(response.status, 200)
 
   t.deepEqual(response.data, {
-    email: 'test@example.com',
+    email: 'test@example.com'
   })
 
   await server.stop()
 })
-

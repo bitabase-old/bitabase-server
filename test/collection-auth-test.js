@@ -57,10 +57,10 @@ function createUserCollection () {
   })
 }
 
-function createUser (opts={}) {
+function createUser (opts = {}) {
   return httpRequest('/users', {
     headers: {
-      'Host': 'example.localhost:8000'
+      Host: 'example.localhost:8000'
     },
     method: 'post',
     data: {
@@ -79,17 +79,17 @@ test('create user collection without permission', async t => {
 
   await createUserCollection()
 
-  const adminUser = await createUser({groups: ['manage_users']})
+  const adminUser = await createUser({ groups: ['manage_users'] })
   t.equal(adminUser.status, 201)
 
   // Attach rules
   await applyRulesToUsercollection()
 
-  const secondUser = await createUser({username: 'testuser2', groups: ['manage_users']})
+  const secondUser = await createUser({ username: 'testuser2', groups: ['manage_users'] })
   t.equal(secondUser.status, 400)
   t.deepEqual(secondUser.data, ['not allowed to add groups'])
 
-  const thirdUser = await createUser({username: 'testuser2'})
+  const thirdUser = await createUser({ username: 'testuser2' })
   t.equal(thirdUser.status, 201)
 
   t.equal(thirdUser.status, 201)
@@ -109,14 +109,14 @@ test('create user collection as user with permission', async t => {
 
   await createUserCollection()
 
-  const adminUser = await createUser({groups: ['manage_users']})
+  await createUser({ groups: ['manage_users'] })
 
   // Attach rules
   await applyRulesToUsercollection()
 
   const anotherUser = await httpRequest('/users', {
     headers: {
-      'Host': 'example.localhost:8000',
+      Host: 'example.localhost:8000',
       username: 'testuser',
       password: 'testpass'
     },
@@ -145,14 +145,14 @@ test('auth with invalid details', async t => {
 
   await createUserCollection()
 
-  const adminUser = await createUser({groups: ['manage_users']})
+  await createUser({ groups: ['manage_users'] })
 
   // Attach rules
   await applyRulesToUsercollection()
 
   const anotherUser = await httpRequest('/users', {
     headers: {
-      'Host': 'example.localhost:8000',
+      Host: 'example.localhost:8000',
       username: 'testuser',
       password: 'wrongpass'
     },

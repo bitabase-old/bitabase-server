@@ -1,4 +1,4 @@
-const {promisify} = require('util')
+const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
 
@@ -39,13 +39,13 @@ module.exports = async function (req, res, params) {
   // Validation
   const errors = validate(data)
   if (errors) {
-    return sendError(422, {errors}, res)
+    return sendError(422, { errors }, res)
   }
 
   // Configuration
-  const configFile = path.resolve(__dirname, '../../../data', `example/${data.id}.json`) 
+  const configFile = path.resolve(__dirname, '../../../data', `example/${data.id}.json`)
 
-  await ensureDirectoryExists(configFile, {resolve: true})
+  await ensureDirectoryExists(configFile, { resolve: true })
 
   const existingConfig = await getConfig(configFile)
   if (!existingConfig) {
@@ -59,11 +59,11 @@ module.exports = async function (req, res, params) {
 
   const existingFields = (await db.all(`PRAGMA table_info(${data.id})`))
     .map(field => field.name)
-  
-  const fieldsToDelete = existingFields  
+
+  const fieldsToDelete = existingFields
     .filter(field => field !== 'id' && !Object.keys(data.schema).includes(field))
     .map(field => `${field}=''`)
-  
+
   const fieldsToAdd = Object.keys(data.schema)
     .filter(field => field !== 'id' && !existingFields.includes(field))
     .map(field => {

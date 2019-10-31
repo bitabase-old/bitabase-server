@@ -1,6 +1,6 @@
 const path = require('path')
 const ensureDirectoryExists = require('./ensureDirectoryExists')
-const {promisify} = require('util')
+const { promisify } = require('util')
 
 const sqlite3 = require('sqlite3').verbose()
 
@@ -9,14 +9,14 @@ function connect (filename) {
     if (filename.includes('..')) {
       throw new Error('db can not contain ..')
     }
-  
+
     filename = path.resolve(__dirname, '../data', filename)
-    await ensureDirectoryExists(filename, {resolve: true})
+    await ensureDirectoryExists(filename, { resolve: true })
 
     const db = new sqlite3.Database(filename, function () {
       resolve({
         db,
-    
+
         prepare: (sql) => {
           const stmt = db.prepare(sql)
           return {
@@ -30,18 +30,17 @@ function connect (filename) {
         run: promisify(db.run.bind(db)),
         runIgnore: function (sql) {
           return new Promise((resolve, reject) => {
-              db.run(sql, function (error, result) {
-                if (error) {
-                  if (!error.toString().includes('already exists')) {
-                    return reject(error)
-                  }
+            db.run(sql, function (error, result) {
+              if (error) {
+                if (!error.toString().includes('already exists')) {
+                  return reject(error)
                 }
-                resolve(result)
-              })
+              }
+              resolve(result)
+            })
           })
         }
       })
-
     })
   })
 }

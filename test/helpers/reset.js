@@ -6,7 +6,7 @@ module.exports = function () {
     const dataFolder = path.resolve(__dirname, '../../data')
 
     fs.rmdir(dataFolder, { recursive: true }, err => {
-      if (err) { 
+      if (err) {
         return reject(err)
       }
       resolve()

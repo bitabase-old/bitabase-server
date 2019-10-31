@@ -9,8 +9,8 @@ function sendJson (statusCode, message, res) {
 
 function validate (data) {
   const validations = [
-    {email: data.email       ? '' : 'email is a required field'},
-    {password: data.password ? '' : 'password is a required field'}
+    { email: data.email ? '' : 'email is a required field' },
+    { password: data.password ? '' : 'password is a required field' }
   ].filter(item => !!Object.values(item)[0])
 
   if (validations.length > 0) {
@@ -24,8 +24,8 @@ module.exports = async function (req, res, params) {
   const errors = validate(data)
 
   if (errors) {
-    return sendJson(422, {errors}, res)
+    return sendJson(422, { errors }, res)
   }
-  
-  sendJson(200, {email: data.email}, res)
+
+  sendJson(200, { email: data.email }, res)
 }

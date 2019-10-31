@@ -1,4 +1,4 @@
-const {promisify} = require('util')
+const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
 const readdir = promisify(fs.readdir)
@@ -6,7 +6,7 @@ const readdir = promisify(fs.readdir)
 const ensureDirectoryExists = require('../../../modules/ensureDirectoryExists')
 
 module.exports = async function (req, res, params) {
-  const configFile = path.resolve(__dirname, '../../../data/example/') 
+  const configFile = path.resolve(__dirname, '../../../data/example/')
   await ensureDirectoryExists(configFile)
 
   let collections = await readdir(configFile)
