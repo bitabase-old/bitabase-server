@@ -11,9 +11,7 @@ function sendError (statusCode, message, res) {
 }
 
 module.exports = async function (req, res, params) {
-  const account = req.headers.host.split('.')[0]
-
-  const collection = await getCollection(account, params.collectionId)
+  const collection = await getCollection(params.databaseName, params.collectionId)
 
   const { configFile, config } = collection
 

@@ -5,9 +5,9 @@ const path = require('path')
 const writeFile = promisify(fs.writeFile)
 
 const validate = require('./validate')
-const connect = require('../../../modules/db')
-const ensureDirectoryExists = require('../../../modules/ensureDirectoryExists')
-const parseJsonBody = require('../../../modules/parseJsonBody')
+const connect = require('../../modules/db')
+const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
+const parseJsonBody = require('../../modules/parseJsonBody')
 
 function sendError (statusCode, message, res) {
   res.writeHead(statusCode, {
@@ -43,7 +43,7 @@ module.exports = async function (req, res, params) {
   }
 
   // Configuration
-  const configFile = path.resolve(__dirname, '../../../data', `example/${data.id}.json`)
+  const configFile = path.resolve(__dirname, '../../data', `${params.databaseName}/${data.id}.json`)
 
   await ensureDirectoryExists(configFile, { resolve: true })
 
@@ -55,7 +55,7 @@ module.exports = async function (req, res, params) {
   await writeFile(configFile, JSON.stringify(data))
 
   // Alter db
-  const db = await connect(`example/${data.id}.db`)
+  const db = await connect(`${params.databaseName}/${data.id}.db`)
 
   const existingFields = (await db.all(`PRAGMA table_info(${data.id})`))
     .map(field => field.name)

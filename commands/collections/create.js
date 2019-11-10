@@ -1,10 +1,13 @@
-const connect = require('../../modules/db')
-const getCollection = require('./getCollection')
-const getUser = require('./getUser')
-const parseJsonBody = require('../../modules/parseJsonBody')
-const evaluate = require('../../modules/evaluate')
+const { promisify } = require('util')
+const fs = require('fs')
+const path = require('path')
 
-const uuidv4 = require('uuid').v4
+const writeFile = promisify(fs.writeFile)
+
+const validate = require('./validate')
+const connect = require('../../modules/db')
+const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
+const parseJsonBody = require('../../modules/parseJsonBody')
 
 function sendError (statusCode, message, res) {
   res.writeHead(statusCode, {
@@ -13,122 +16,60 @@ function sendError (statusCode, message, res) {
   res.end(JSON.stringify(message, null, 2))
 }
 
+async function getConfig (filename) {
+  return new Promise((resolve, reject) => {
+    fs.stat(filename, (err, stat) => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          return resolve()
+        } else {
+          return reject(err)
+        }
+      } else {
+        resolve(stat)
+      }
+    })
+  })
+}
+
 module.exports = async function (req, res, params) {
-  try {
-    const data = await parseJsonBody(req)
-    const account = req.headers.host.split('.')[0]
+  const data = await parseJsonBody(req)
 
-    const collection = await getCollection(account, params.collectionId)
-
-    const { configFile, config } = collection
-
-    const db = await connect(configFile + '.db')
-
-    const user = await getUser(db, req.headers.username, req.headers.password)
-
-    // Validation
-    const errors = {}
-    Object.keys(config.schema).forEach(field => {
-      if (config.schema[field].includes('required') && !data[field]) {
-        errors[field] = errors[field] || []
-        errors[field].push('required')
-      }
-    })
-
-    Object.keys(data).forEach(field => {
-      if (!config.schema[field]) {
-        errors[field] = errors[field] || []
-        errors[field].push('unknown field')
-        return
-      }
-
-      config.schema[field].forEach(checkFn => {
-        if (checkFn === 'required') {
-          return
-        }
-
-        if (checkFn === 'string') {
-          checkFn = 'typeOf(value) == "string" ? null : "must be string"'
-        }
-
-        if (checkFn === 'array') {
-          checkFn = 'typeOf(value) == "Array" ? null : "must be array"'
-        }
-
-        const invalid = evaluate(checkFn, {
-          value: data[field],
-          user
-        })
-
-        if (invalid) {
-          errors[field] = errors[field] || []
-          errors[field].push(invalid)
-        }
-      })
-    })
-
-    if (Object.values(errors).length > 0) {
-      return sendError(400, errors, res)
-    }
-
-    // Rules
-    if (config.rules && config.rules.POST) {
-      const ruleErrors = []
-      ;(config.rules.POST || []).forEach(rule => {
-        const result = evaluate(rule, {
-          data, user
-        })
-
-        if (result) {
-          ruleErrors.push(result)
-        }
-      })
-
-      if (Object.values(ruleErrors).length > 0) {
-        return sendError(400, ruleErrors, res)
-      }
-    }
-
-    // Mutations
-    Object.keys(data).forEach(field => {
-      if (config.schema[field].includes('array')) {
-        data[field] = JSON.stringify(data[field])
-      }
-    })
-
-    ;(config.mutations || []).forEach(mutation => {
-      evaluate(mutation, {
-        data, user
-      })
-    })
-
-    // Insert record
-    const sql = `
-      INSERT INTO ${params.collectionId} 
-      (id, ${Object.entries(data).map(o => o[0]).join(', ')}) 
-      VALUES 
-      (?, ${Object.keys(data).fill('?').join(', ')})
-    `
-    const stmt = await db.prepare(sql)
-    const id = uuidv4()
-    stmt.run(...[id, ...Object.entries(data).map(o => o[1])])
-    await stmt.finalize()
-
-    await db.close()
-
-    // Presenters
-    ;(config.presenters || []).forEach(presenter => {
-      evaluate(presenter, {
-        data, user
-      })
-    })
-
-    res.writeHead(201)
-    res.end(JSON.stringify(Object.assign(data, { id })))
-  } catch (error) {
-    if (!error.friendly) {
-      console.log(error)
-    }
-    sendError(error.code || 500, error.friendly, res)
+  // Validation
+  const errors = validate(data)
+  if (errors) {
+    return sendError(422, { errors }, res)
   }
+
+  // Configuration
+  const configFile = path.resolve(__dirname, '../../data', `${params.databaseName}/${data.id}.json`)
+
+  await ensureDirectoryExists(configFile, { resolve: true })
+
+  const existingConfig = await getConfig(configFile)
+  if (existingConfig) {
+    return sendError(422, { errors: { id: 'already taken' } }, res)
+  }
+
+  await writeFile(configFile, JSON.stringify(data))
+
+  // Create db
+  const db = await connect(`${params.databaseName}/${data.id}.db`)
+
+  const fields = Object.keys(data.schema || [])
+    .map(fieldKey => {
+      return `${fieldKey} TEXT`
+    })
+    .join(', ')
+
+  const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
+
+  await db.run(`CREATE TABLE ${data.id} (${idField} ${fields ? ', ' + fields : ''})`)
+  await db.close()
+
+  // Respond
+  res.writeHead(201, {
+    'Content-Type': 'application/json'
+  })
+  res.end(JSON.stringify(data))
 }

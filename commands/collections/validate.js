@@ -1,8 +1,8 @@
-const validateAlphaNumeric = require('../../../modules/validations/validateAlphaNumeric')
-const validateKeyIsAlphaNumeric = require('../../../modules/validations/validateKeyIsAlphaNumeric')
-const validateObjectProperties = require('../../../modules/validations/validateObjectProperties')
-const validateArrayOfStrings = require('../../../modules/validations/validateArrayOfStrings')
-const validateKeyInList = require('../../../modules/validations/validateKeyInList')
+const validateAlphaNumeric = require('../../modules/validations/validateAlphaNumeric')
+const validateKeyIsAlphaNumeric = require('../../modules/validations/validateKeyIsAlphaNumeric')
+const validateObjectProperties = require('../../modules/validations/validateObjectProperties')
+const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings')
+const validateKeyInList = require('../../modules/validations/validateKeyInList')
 
 function validate (data) {
   const validations = [

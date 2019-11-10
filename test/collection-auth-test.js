@@ -4,7 +4,7 @@ const reset = require('./helpers/reset')
 const server = require('../server')
 
 function applyRulesToUsercollection () {
-  return httpRequest('/api/collections/users', {
+  return httpRequest('/v1/databases/test/collections/users', {
     method: 'put',
     data: {
       id: 'users',
@@ -38,7 +38,7 @@ function applyRulesToUsercollection () {
 }
 
 function createUserCollection () {
-  return httpRequest('/api/collections', {
+  return httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'users',
@@ -58,10 +58,7 @@ function createUserCollection () {
 }
 
 function createUser (opts = {}) {
-  return httpRequest('/users', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  return httpRequest('/v1/databases/test/collections/users/records', {
     method: 'post',
     data: {
       username: opts.username || 'testuser',
@@ -114,7 +111,7 @@ test('create user collection as user with permission', async t => {
   // Attach rules
   await applyRulesToUsercollection()
 
-  const anotherUser = await httpRequest('/users', {
+  const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
     headers: {
       Host: 'example.localhost:8000',
       username: 'testuser',
@@ -150,9 +147,8 @@ test('auth with invalid details', async t => {
   // Attach rules
   await applyRulesToUsercollection()
 
-  const anotherUser = await httpRequest('/users', {
+  const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
     headers: {
-      Host: 'example.localhost:8000',
       username: 'testuser',
       password: 'wrongpass'
     },

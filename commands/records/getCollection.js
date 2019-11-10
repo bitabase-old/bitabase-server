@@ -8,7 +8,7 @@ const ErrorObject = require('../../modules/error')
 
 module.exports = async function (account, collectionId) {
   if (account.match(/[^a-z0-9]/gi, '')) {
-    console.log('Invalid subdomain')
+    console.log('Invalid database name')
     throw ErrorObject({ code: 404 })
   }
 

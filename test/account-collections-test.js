@@ -9,7 +9,7 @@ test('list collections: empty', async t => {
 
   await server.start()
 
-  const response = await httpRequest('/api/collections', {
+  const response = await httpRequest('/v1/databases/test/collections', {
     method: 'get'
   })
 
@@ -28,7 +28,7 @@ test('list collections: one db', async t => {
   await server.start()
 
   // Create a collection
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -40,7 +40,7 @@ test('list collections: one db', async t => {
     }
   })
 
-  const response = await httpRequest('/api/collections', {
+  const response = await httpRequest('/v1/databases/test/collections', {
     method: 'get'
   })
 
@@ -59,14 +59,14 @@ test('update collection', async t => {
 
   await server.start()
 
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test'
     }
   })
 
-  const addFieldsResponse = await httpRequest('/api/collections/test', {
+  const addFieldsResponse = await httpRequest('/v1/databases/test/collections/test', {
     method: 'put',
     data: {
       id: 'test',
@@ -81,7 +81,7 @@ test('update collection', async t => {
 
   t.equal(addFieldsResponse.status, 200)
 
-  const removeFieldResponse = await httpRequest('/api/collections/test', {
+  const removeFieldResponse = await httpRequest('/v1/databases/test/collections/test', {
     method: 'put',
     data: {
       id: 'test',
@@ -105,7 +105,7 @@ test('create new collection', async t => {
 
   await server.start()
 
-  const response = await httpRequest('/api/collections', {
+  const response = await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'users',

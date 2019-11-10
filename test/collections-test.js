@@ -4,7 +4,7 @@ const reset = require('./helpers/reset')
 const server = require('../server')
 
 async function createTestCollection () {
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -23,10 +23,7 @@ test('list items in collection when empty', async t => {
 
   await createTestCollection()
 
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'get'
   })
 
@@ -38,14 +35,14 @@ test('list items in collection when empty', async t => {
   await server.stop()
 })
 
-test('create item in collection with build in validation error', async t => {
+test('create item in collection with built in validation error', async t => {
   t.plan(2)
   await reset()
 
   await server.start()
 
   // Create test collection with validation
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -58,10 +55,7 @@ test('create item in collection with build in validation error', async t => {
   })
 
   // Make request
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'post',
     data: {
       testString: 10,
@@ -86,7 +80,7 @@ test('create item in collection without using all fields', async t => {
   await server.start()
 
   // Create test collection with validation
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -98,10 +92,7 @@ test('create item in collection without using all fields', async t => {
   })
 
   // Make request
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'post',
     data: {
       testOptionalOne: 'test'
@@ -122,7 +113,7 @@ test('create item in collection with custom validation error', async t => {
   await server.start()
 
   // Create test collection with validation
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -133,10 +124,7 @@ test('create item in collection with custom validation error', async t => {
   })
 
   // Make request
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'post',
     data: {
       test: 'test1'
@@ -158,7 +146,7 @@ test('create item in collection with customer presenter', async t => {
   await server.start()
 
   // Create test collection with validation
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -173,10 +161,7 @@ test('create item in collection with customer presenter', async t => {
   })
 
   // Make request
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'post',
     data: {
       test: 'test1',
@@ -190,11 +175,9 @@ test('create item in collection with customer presenter', async t => {
   t.ok(response.data.id)
 
   // Find record
-  const found = await httpRequest(`/test/${response.data.id}`, {
-    headers: {
-      Host: 'example.localhost:8000'
-    }
-  })
+  const found = await httpRequest(
+    `/v1/databases/test/collections/test/records/${response.data.id}`
+  )
 
   t.notOk(found.data.testToRemove)
 
@@ -208,7 +191,7 @@ test('create item in collection with customer mutation', async t => {
   await server.start()
 
   // Create test collection with validation
-  await httpRequest('/api/collections', {
+  await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       id: 'test',
@@ -222,10 +205,7 @@ test('create item in collection with customer mutation', async t => {
   })
 
   // Make request
-  const response = await httpRequest('/test', {
-    headers: {
-      Host: 'example.localhost:8000'
-    },
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'post',
     data: {
       test: 'test1'
@@ -237,11 +217,9 @@ test('create item in collection with customer mutation', async t => {
   t.ok(response.data.id)
 
   // Find record
-  const found = await httpRequest(`/test/${response.data.id}`, {
-    headers: {
-      Host: 'example.localhost:8000'
-    }
-  })
+  const found = await httpRequest(
+    `/v1/databases/test/collections/test/records/${response.data.id}`
+  )
 
   t.equal(found.data.test, 'test1-changed')
 
