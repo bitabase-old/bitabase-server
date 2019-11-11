@@ -16,11 +16,12 @@ function start () {
     router.lookup(req, res)
   }).listen(config.port)
 
-  console.log(`Listening on port ${config.port}`)
+  console.log(`[bitabase-server] Listening on port ${config.port}`)
 }
 
 function stop () {
-  server.close()
+  console.log('[bitabase-server] Shutting down')
+  server && server.close()
 }
 
 module.exports = { start, stop }
