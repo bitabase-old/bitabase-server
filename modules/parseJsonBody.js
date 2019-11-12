@@ -1,35 +1,29 @@
-/*
-  WARNING: This needs to be replaced, it is an unsafe
-  quick implementation of something that needs much more
-  thought. Do not use in production.
-*/
+const { ErrorObject } = require('./error')
 
-const { BaseError } = require('generic-errors')
+function parseBody (request, callback) {
+  let body = []
 
-function parseBody (request) {
-  return new Promise((resolve, reject) => {
-    let body = []
-    request
-      .on('data', function (chunk) {
-        body.push(chunk)
-      })
-      .on('end', function () {
-        body = Buffer.concat(body).toString()
-        if (body) {
-          try {
-            body = JSON.parse(body)
-          } catch (error) {
-            reject(new BaseError({ code: 400, error, body }))
-          }
-          resolve(body)
+  request
+    .on('data', function (chunk) {
+      body.push(chunk)
+    })
+
+    .on('end', function () {
+      body = Buffer.concat(body).toString()
+
+      if (body) {
+        try {
+          return callback(null, JSON.parse(body))
+        } catch (error) {
+          return callback(new ErrorObject({ code: 400, error, body }))
         }
+      }
 
-        return resolve(undefined)
-      })
-      .on('error', function (error) {
-        reject(error)
-      })
-  })
+      return callback(null, null)
+    })
+    .on('error', function (error) {
+      callback(error)
+    })
 }
 
 module.exports = parseBody

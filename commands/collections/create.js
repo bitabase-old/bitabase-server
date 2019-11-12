@@ -77,7 +77,7 @@ function createTable(db, collectionDefinition, callback){
 module.exports = async function (request, response, params) {
   const databaseName = params.databaseName
 
-  const collectionDefinition = righto.from(parseJsonBody(request))
+  const collectionDefinition = righto(parseJsonBody, request)
   const validCollectionDefinition = righto.sync(data => {
     const errors = validate(data)
     return errors ? righto.fail({
