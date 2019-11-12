@@ -7,7 +7,7 @@ async function createTestCollection () {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         test: ['required', 'string']
       }
@@ -45,7 +45,7 @@ test('create item in collection with built in validation error', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         testString: ['string'],
         testRequired: ['required'],
@@ -83,7 +83,7 @@ test('create item in collection without using all fields', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         testOptionalOne: ['string'],
         testOptionalTwo: ['string']
@@ -116,7 +116,7 @@ test('create item in collection with custom validation error', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         test: ['required', 'string', 'value == "something" ? null : "must be something"']
       }
@@ -149,7 +149,7 @@ test('create item in collection with customer presenter', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         test: ['required', 'string'],
         testToRemove: ['required', 'string']
@@ -194,7 +194,7 @@ test('create item in collection with customer mutation', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'test',
+      name: 'test',
       schema: {
         test: ['required', 'string']
       },

@@ -42,19 +42,19 @@ module.exports = async function (req, res, params) {
   }
 
   // Configuration
-  const configFile = path.resolve(__dirname, '../../data', `${params.databaseName}/${data.id}.json`)
+  const configFile = path.resolve(__dirname, '../../data', `${params.databaseName}/${data.name}.json`)
 
   await ensureDirectoryExists(configFile, { resolve: true })
 
   const existingConfig = await getConfig(configFile)
   if (existingConfig) {
-    return sendError(422, { errors: { id: 'already taken' } }, res)
+    return sendError(422, { errors: { name: 'already taken' } }, res)
   }
 
   await writeFile(configFile, JSON.stringify(data))
 
   // Create db
-  const db = await connect(`${params.databaseName}/${data.id}.db`)
+  const db = await connect(`${params.databaseName}/${data.name}.db`)
 
   const fields = Object.keys(data.schema || [])
     .map(fieldKey => {
@@ -64,7 +64,7 @@ module.exports = async function (req, res, params) {
 
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
 
-  await db.run(`CREATE TABLE ${data.id} (${idField} ${fields ? ', ' + fields : ''})`)
+  await db.run(`CREATE TABLE ${data.name} (${idField} ${fields ? ', ' + fields : ''})`)
   await db.close()
 
   // Respond

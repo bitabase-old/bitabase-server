@@ -7,7 +7,7 @@ function applyRulesToUsercollection () {
   return httpRequest('/v1/databases/test/collections/users', {
     method: 'put',
     data: {
-      id: 'users',
+      name: 'users',
       schema: {
         username: ['required', 'string'],
         password: ['required', 'string'],
@@ -41,7 +41,7 @@ function createUserCollection () {
   return httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      id: 'users',
+      name: 'users',
       schema: {
         username: ['required', 'string'],
         password: ['required', 'string'],

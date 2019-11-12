@@ -6,7 +6,7 @@ const validateKeyInList = require('../../modules/validations/validateKeyInList')
 
 function validate (data) {
   const validations = [
-    validateAlphaNumeric(data, 'id'),
+    validateAlphaNumeric(data, 'name'),
 
     validateObjectProperties(data, 'schema', [
       validateKeyIsAlphaNumeric,
