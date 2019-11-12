@@ -1,35 +1,10 @@
 const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
-const righto = require('righto')
-
 const validate = require('./validate')
 const connect = require('../../modules/db')
 const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
 const parseJsonBody = require('../../modules/parseJsonBody')
-
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  })
-  res.end(JSON.stringify(message, null, 2))
-}
-
-async function getConfig (filename) {
-  return new Promise((resolve, reject) => {
-    fs.stat(filename, (err, stat) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return resolve()
-        } else {
-          return reject(err)
-        }
-      } else {
-        resolve(stat)
-      }
-    })
-  })
-}
 
 function createCollectionConfig(databaseName, schema, callback){
   const databaseDirectory = path.resolve(__dirname, '../../data', `${params.databaseName}`)
