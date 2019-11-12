@@ -21,36 +21,44 @@ test('list collections: empty', async t => {
   await server.stop()
 })
 
-// test('list collections: one db', async t => {
-//   t.plan(1)
-//   await reset()
+test('list collections: one db', async t => {
+  t.plan(1)
+  await reset()
 
-//   await server.start()
+  await server.start()
 
-//   // Create a collection
-//   await httpRequest('/v1/databases/test/collections', {
-//     method: 'post',
-//     data: {
-//       name: 'test',
+  // Create a collection
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'test',
 
-//       // Creating and updating items must conform to this schema
-//       schema: {
-//         test: ['required', 'string']
-//       }
-//     }
-//   })
+      // Creating and updating items must conform to this schema
+      schema: {
+        test: ['required', 'string']
+      }
+    }
+  })
 
-//   const response = await httpRequest('/v1/databases/test/collections', {
-//     method: 'get'
-//   })
+  // Create a record
+  await httpRequest('/v1/databases/test/collections/test', {
+    method: 'post',
+    data: {
+      test: 'onse'
+    }
+  })
 
-//   t.deepEqual(response.data, {
-//     count: 1,
-//     items: ['test']
-//   })
+  const response = await httpRequest('/v1/databases/test/collections', {
+    method: 'get'
+  })
 
-//   await server.stop()
-// })
+  t.deepEqual(response.data, {
+    count: 1,
+    items: ['test']
+  })
+
+  await server.stop()
+})
 
 test('update collection', async t => {
   t.plan(2)
