@@ -5,6 +5,7 @@ const validate = require('./validate')
 const connect = require('../../modules/db')
 const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
 const parseJsonBody = require('../../modules/parseJsonBody')
+const righto = require('righto')
 
 function createCollectionConfig(databaseName, schema, callback){
   const databaseDirectory = path.resolve(__dirname, '../../data', `${params.databaseName}`)
