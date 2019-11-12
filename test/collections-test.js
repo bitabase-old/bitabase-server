@@ -1,3 +1,7 @@
+const righto = require('righo')
+righto._debug = true;
+righto._autotraceOnError = true;
+
 const test = require('tape')
 const httpRequest = require('./helpers/httpRequest')
 const reset = require('./helpers/reset')
