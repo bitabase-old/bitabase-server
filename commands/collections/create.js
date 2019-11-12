@@ -42,11 +42,12 @@ function closeDb(db, callback){
 function respond(request, response){
   return function(error, result){
     if(error){
+
       // Respond
-      response.writeHead(500, {
+      response.writeHead(error.status || 500, {
         'Content-Type': 'application/json'
       })
-      response.end(JSON.stringify(error))
+      response.end(JSON.stringify(error.errors))
       return
     }
     // Respond
@@ -75,15 +76,22 @@ function createTable(db, collectionDefinition, callback){
 
 module.exports = async function (request, response, params) {
   const databaseName = params.databaseName
+
   const collectionDefinition = righto.from(parseJsonBody(request))
   const validCollectionDefinition = righto.sync(data => {
     const errors = validate(data)
-    return errors ? righto.fail(errors) : data
+    return errors ? righto.fail({
+      status: 400,
+      errors
+    }) : data
   }, collectionDefinition)
+
   const availableConfig = righto(createCollection, databaseName, validCollectionDefinition)
+
   const db = righto.sync(connect, availableConfig.get('databaseFilePath'))
   const tableCreated = righto(createTable, db, validCollectionDefinition)
   const dbClosed = righto(closeDb, db, righto.after(tableCreated))
+
   const result = righto.mate(validCollectionDefinition, righto.after(dbClosed))
 
   result(respond(request, response))

@@ -98,6 +98,33 @@ test('update collection', async t => {
   await server.stop()
 })
 
+test('create new collection with validation errors', async t => {
+  t.plan(2)
+
+  await reset()
+
+  await server.start()
+
+  const response = await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      id: {
+        this: {
+          is: {
+            wrong: true
+          }
+        }
+      },
+    },
+    validateStatus: status => status < 500
+  })
+
+  t.equal(response.status, 400)
+  t.deepEqual(response.data, { id: 'can only be alpha numeric' })
+
+  await server.stop()
+})
+
 test('create new collection', async t => {
   t.plan(1)
 
