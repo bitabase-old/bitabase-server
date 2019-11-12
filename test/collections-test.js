@@ -1,4 +1,4 @@
-const righto = require('righo')
+const righto = require('righto')
 righto._debug = true;
 righto._autotraceOnError = true;
 
