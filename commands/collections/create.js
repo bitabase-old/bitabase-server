@@ -11,15 +11,13 @@ const parseJsonBody = require('../../modules/parseJsonBodyCB')
 const sendJsonResponse = require('../../modules/sendJsonResponse')
 const ErrorObject = require('../../modules/error')
 
-function createCollectionDatabase (databasePath, databaseName, collectionName, fields, callback) {
-  const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`)
+function createTableFromSchema (collectionName, fields, connection, callback) {
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
 
-  const dbConnection = righto(connectWithCreate, filePath)
-  const createdTable = righto(sqlite.run, `CREATE TABLE ${collectionName} (${idField} ${fields ? ', ' + fields : ''})`, dbConnection)
-  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable))
-
-  closedDatabase(callback)
+  sqlite.run(
+    `CREATE TABLE ${collectionName} (${idField} ${fields ? ', ' + fields : ''})`,
+    connection, callback
+  )
 }
 
 function createFieldsFromSchema (schema, callback) {
@@ -30,6 +28,18 @@ function createFieldsFromSchema (schema, callback) {
     .join(', ')
 
   callback(null, fields)
+}
+
+function createCollectionDatabase (databasePath, databaseName, collectionConfig, callback) {
+  const collectionName = collectionConfig.name
+  const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`)
+  const fields = righto(createFieldsFromSchema, collectionConfig.schema)
+
+  const dbConnection = righto(connectWithCreate, filePath)
+  const createdTable = righto(createTableFromSchema, collectionName, fields, dbConnection)
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable))
+
+  closedDatabase(callback)
 }
 
 function createConfigFile (databasePath, databaseName, collectionConfig, callback) {
@@ -58,10 +68,8 @@ module.exports = config => function (request, response, params) {
   const configFileCreated = righto(createConfigFile,
     config.databasePath, params.databaseName, validData)
 
-  const fields = righto(createFieldsFromSchema, validData.get('schema'))
-
   const createdCollection = righto(createCollectionDatabase,
-    config.databasePath, params.databaseName, validData.get('name'), fields, righto.after(configFileCreated))
+    config.databasePath, params.databaseName, validData, righto.after(configFileCreated))
 
   createdCollection(function (error, result) {
     if (error) {
