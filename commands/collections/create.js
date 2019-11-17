@@ -1,74 +1,78 @@
-const { promisify } = require('util')
 const fs = require('fs')
 const path = require('path')
 
-const writeFile = promisify(fs.writeFile)
+const mkdirp = require('mkdirp')
+const righto = require('righto')
+const sqlite = require('sqlite-fp')
 
 const validate = require('./validate')
-const connect = require('../../modules/db')
-const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
-const parseJsonBody = require('../../modules/parseJsonBody')
+const connectWithCreate = require('../../modules/connectWithCreate')
+const parseJsonBody = require('../../modules/parseJsonBodyCB')
+const sendJsonResponse = require('../../modules/sendJsonResponse')
+const ErrorObject = require('../../modules/error')
 
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  })
-  res.end(JSON.stringify(message, null, 2))
+function createCollectionDatabase (databasePath, databaseName, collectionName, fields, callback) {
+  const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`)
+  const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
+
+  const dbConnection = righto(connectWithCreate, filePath)
+  const createdTable = righto(sqlite.run, `CREATE TABLE ${collectionName} (${idField} ${fields ? ', ' + fields : ''})`, dbConnection)
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable))
+
+  closedDatabase(callback)
 }
 
-async function getConfig (filename) {
-  return new Promise((resolve, reject) => {
-    fs.stat(filename, (err, stat) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return resolve()
-        } else {
-          return reject(err)
-        }
-      } else {
-        resolve(stat)
-      }
-    })
-  })
-}
-
-module.exports = config => async function (req, res, params) {
-  const data = await parseJsonBody(req)
-
-  // Validation
-  const errors = validate(data)
-  if (errors) {
-    return sendError(422, { errors }, res)
-  }
-
-  // Configuration
-  const configFile = path.resolve(config.databasePath, `${params.databaseName}/${data.name}.json`)
-  await ensureDirectoryExists(configFile, { resolve: true })
-
-  const existingConfig = await getConfig(configFile)
-  if (existingConfig) {
-    return sendError(422, { errors: { name: 'already taken' } }, res)
-  }
-
-  await writeFile(configFile, JSON.stringify(data))
-
-  // Create db
-  const db = await connect(config.databasePath, `${params.databaseName}/${data.name}.db`)
-
-  const fields = Object.keys(data.schema || [])
+function createFieldsFromSchema (schema, callback) {
+  const fields = Object.keys(schema || [])
     .map(fieldKey => {
       return `${fieldKey} TEXT`
     })
     .join(', ')
 
-  const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE'
+  callback(null, fields)
+}
 
-  await db.run(`CREATE TABLE ${data.name} (${idField} ${fields ? ', ' + fields : ''})`)
-  await db.close()
+function createConfigFile (databasePath, databaseName, collectionConfig, callback) {
+  const configFile = path.resolve(databasePath, `${databaseName}/${collectionConfig.name}.json`)
+  const configFolder = path.dirname(configFile)
 
-  // Respond
-  res.writeHead(201, {
-    'Content-Type': 'application/json'
+  const folderExists = righto(mkdirp, configFolder)
+  const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists))
+
+  existingConfigFile(function (error, existingConfig) {
+    if (error && error.code === 'ENOENT') {
+      return fs.writeFile(configFile, JSON.stringify(collectionConfig), callback)
+    }
+
+    callback(new ErrorObject({
+      statusCode: 422,
+      message: { errors: { name: 'already taken' } }
+    }))
   })
-  res.end(JSON.stringify(data))
+}
+
+module.exports = config => function (request, response, params) {
+  const parsedData = righto(parseJsonBody, request)
+  const validData = righto(validate, parsedData)
+
+  const configFileCreated = righto(createConfigFile,
+    config.databasePath, params.databaseName, validData)
+
+  const fields = righto(createFieldsFromSchema, validData.get('schema'))
+
+  const createdCollection = righto(createCollectionDatabase,
+    config.databasePath, params.databaseName, validData.get('name'), fields, righto.after(configFileCreated))
+
+  createdCollection(function (error, result) {
+    if (error) {
+      if (error.statusCode) {
+        sendJsonResponse(error.statusCode, error.message, response)
+      } else {
+        sendJsonResponse(500, 'Unexpected Server Error', response)
+      }
+      return
+    }
+
+    sendJsonResponse(201, result, response)
+  })
 }

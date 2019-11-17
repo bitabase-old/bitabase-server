@@ -159,3 +159,32 @@ test('create new collection', async t => {
 
   await server.stop()
 })
+
+test('create new collection -> duplicate collectionName', async t => {
+  t.plan(2)
+
+  await reset()
+
+  const server = await createServer().start()
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'newcollection'
+    },
+    validateStatus: status => status < 500
+  })
+
+  const response = await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'newcollection'
+    },
+    validateStatus: status => status < 500
+  })
+
+  t.equal(response.status, 422)
+  t.deepEqual(response.data, { errors: { name: 'already taken' } })
+
+  await server.stop()
+})

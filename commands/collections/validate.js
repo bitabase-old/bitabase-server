@@ -4,7 +4,7 @@ const validateObjectProperties = require('../../modules/validations/validateObje
 const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings')
 const validateKeyInList = require('../../modules/validations/validateKeyInList')
 
-function validate (data) {
+function validate (data, callback) {
   const validations = [
     validateAlphaNumeric(data, 'name'),
 
@@ -24,7 +24,11 @@ function validate (data) {
   ].filter(item => !!item)
 
   if (validations.length > 0) {
-    return Object.assign.apply(null, validations)
+    const result = Object.assign.apply(null, validations)
+    callback && callback(result)
+    return result
+  } else {
+    callback && callback(null, data)
   }
 }
 
