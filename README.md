@@ -4,6 +4,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bitabase/bitabase-server)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/bitabase/bitabase-server)](https://github.com/bitabase/bitabase-server/blob/master/package.json)
 [![GitHub](https://img.shields.io/github/license/bitabase/bitabase-server)](https://github.com/bitabase/bitabase-server/blob/master/LICENSE)
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat-square)](https://github.com/standard/semistandard)
 
 This is a very early attempt at the bitabase rest server.
 

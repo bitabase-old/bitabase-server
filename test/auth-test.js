@@ -1,7 +1,7 @@
-const test = require('tape')
-const httpRequest = require('./helpers/httpRequest')
-const reset = require('./helpers/reset')
-const createServer = require('../server')
+const test = require('tape');
+const httpRequest = require('./helpers/httpRequest');
+const reset = require('./helpers/reset');
+const createServer = require('../server');
 
 function applyRulesToUsercollection () {
   return httpRequest('/v1/databases/test/collections/users', {
@@ -34,7 +34,7 @@ function applyRulesToUsercollection () {
         ]
       }
     }
-  })
+  });
 }
 
 function createUserCollection () {
@@ -54,7 +54,7 @@ function createUserCollection () {
         'data.password = undefined'
       ]
     }
-  })
+  });
 }
 
 function createUser (opts = {}) {
@@ -65,50 +65,50 @@ function createUser (opts = {}) {
       password: 'testpass',
       groups: opts.groups || []
     }
-  })
+  });
 }
 
 test('create user collection without permission', async t => {
-  t.plan(9)
-  await reset()
+  t.plan(9);
+  await reset();
 
-  const server = await createServer().start()
-  await createUserCollection()
+  const server = await createServer().start();
+  await createUserCollection();
 
-  const adminUser = await createUser({ groups: ['manage_users'] })
-  t.equal(adminUser.status, 201)
+  const adminUser = await createUser({ groups: ['manage_users'] });
+  t.equal(adminUser.status, 201);
 
   // Attach rules
-  await applyRulesToUsercollection()
+  await applyRulesToUsercollection();
 
-  const secondUser = await createUser({ username: 'testuser2', groups: ['manage_users'] })
-  t.equal(secondUser.status, 400)
-  t.deepEqual(secondUser.data, ['not allowed to add groups'])
+  const secondUser = await createUser({ username: 'testuser2', groups: ['manage_users'] });
+  t.equal(secondUser.status, 400);
+  t.deepEqual(secondUser.data, ['not allowed to add groups']);
 
-  const thirdUser = await createUser({ username: 'testuser2' })
-  t.equal(thirdUser.status, 201)
+  const thirdUser = await createUser({ username: 'testuser2' });
+  t.equal(thirdUser.status, 201);
 
-  t.equal(thirdUser.status, 201)
-  t.equal(thirdUser.data.username, 'testuser2')
-  t.equal(thirdUser.data.groups, '[]')
-  t.notOk(thirdUser.data.password)
-  t.ok(thirdUser.data.id)
+  t.equal(thirdUser.status, 201);
+  t.equal(thirdUser.data.username, 'testuser2');
+  t.equal(thirdUser.data.groups, '[]');
+  t.notOk(thirdUser.data.password);
+  t.ok(thirdUser.data.id);
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create user collection as user with permission', async t => {
-  t.plan(5)
-  await reset()
+  t.plan(5);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
-  await createUserCollection()
+  await createUserCollection();
 
-  await createUser({ groups: ['manage_users'] })
+  await createUser({ groups: ['manage_users'] });
 
   // Attach rules
-  await applyRulesToUsercollection()
+  await applyRulesToUsercollection();
 
   const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
     headers: {
@@ -122,29 +122,29 @@ test('create user collection as user with permission', async t => {
       password: 'testpass',
       groups: ['manage_users']
     }
-  })
+  });
 
-  t.equal(anotherUser.status, 201)
-  t.equal(anotherUser.data.username, 'testuser2')
-  t.equal(anotherUser.data.groups, '["manage_users"]')
-  t.notOk(anotherUser.data.password)
-  t.ok(anotherUser.data.id)
+  t.equal(anotherUser.status, 201);
+  t.equal(anotherUser.data.username, 'testuser2');
+  t.equal(anotherUser.data.groups, '["manage_users"]');
+  t.notOk(anotherUser.data.password);
+  t.ok(anotherUser.data.id);
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('auth with invalid details', async t => {
-  t.plan(2)
-  await reset()
+  t.plan(2);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
-  await createUserCollection()
+  await createUserCollection();
 
-  await createUser({ groups: ['manage_users'] })
+  await createUser({ groups: ['manage_users'] });
 
   // Attach rules
-  await applyRulesToUsercollection()
+  await applyRulesToUsercollection();
 
   const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
     headers: {
@@ -157,10 +157,10 @@ test('auth with invalid details', async t => {
       password: 'testpass',
       groups: ['manage_users']
     }
-  })
+  });
 
-  t.equal(anotherUser.status, 401)
-  t.equal(anotherUser.data, 'incorrect username and password')
+  t.equal(anotherUser.status, 401);
+  t.equal(anotherUser.data, 'incorrect username and password');
 
-  await server.stop()
-})
+  await server.stop();
+});

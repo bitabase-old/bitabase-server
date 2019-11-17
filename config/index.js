@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 
 const config = {
   dev: {
@@ -10,6 +10,6 @@ const config = {
     port: 10000,
     databasePath: path.resolve(__dirname, '../data')
   }
-}
+};
 
-module.exports = config[process.env.NODE_ENV || 'dev']
+module.exports = config[process.env.NODE_ENV || 'dev'];

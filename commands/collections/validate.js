@@ -1,8 +1,8 @@
-const validateAlphaNumeric = require('../../modules/validations/validateAlphaNumeric')
-const validateKeyIsAlphaNumeric = require('../../modules/validations/validateKeyIsAlphaNumeric')
-const validateObjectProperties = require('../../modules/validations/validateObjectProperties')
-const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings')
-const validateKeyInList = require('../../modules/validations/validateKeyInList')
+const validateAlphaNumeric = require('../../modules/validations/validateAlphaNumeric');
+const validateKeyIsAlphaNumeric = require('../../modules/validations/validateKeyIsAlphaNumeric');
+const validateObjectProperties = require('../../modules/validations/validateObjectProperties');
+const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings');
+const validateKeyInList = require('../../modules/validations/validateKeyInList');
 
 function validate (data, callback) {
   const validations = [
@@ -21,15 +21,15 @@ function validate (data, callback) {
       validateKeyInList.bind(null, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
       validateArrayOfStrings
     ])
-  ].filter(item => !!item)
+  ].filter(item => !!item);
 
   if (validations.length > 0) {
-    const result = Object.assign.apply(null, validations)
-    callback && callback(result)
-    return result
+    const result = Object.assign.apply(null, validations);
+    callback && callback(result);
+    return result;
   } else {
-    callback && callback(null, data)
+    callback && callback(null, data);
   }
 }
 
-module.exports = validate
+module.exports = validate;

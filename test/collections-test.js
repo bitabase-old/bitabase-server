@@ -1,7 +1,7 @@
-const test = require('tape')
-const httpRequest = require('./helpers/httpRequest')
-const reset = require('./helpers/reset')
-const createServer = require('../server')
+const test = require('tape');
+const httpRequest = require('./helpers/httpRequest');
+const reset = require('./helpers/reset');
+const createServer = require('../server');
 
 async function createTestCollection () {
   await httpRequest('/v1/databases/test/collections', {
@@ -12,34 +12,34 @@ async function createTestCollection () {
         test: ['required', 'string']
       }
     }
-  })
+  });
 }
 
 test('list items in collection when empty', async t => {
-  t.plan(1)
-  await reset()
+  t.plan(1);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
-  await createTestCollection()
+  await createTestCollection();
 
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
     method: 'get'
-  })
+  });
 
   t.deepEqual(response.data, {
     count: 0,
     items: []
-  })
+  });
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create item in collection with built in validation error', async t => {
-  t.plan(2)
-  await reset()
+  t.plan(2);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -52,7 +52,7 @@ test('create item in collection with built in validation error', async t => {
         testRequiredAgain: ['required']
       }
     }
-  })
+  });
 
   // Make request
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
@@ -61,23 +61,23 @@ test('create item in collection with built in validation error', async t => {
       testString: 10,
       testRequired: ''
     }
-  })
+  });
 
-  t.equal(response.status, 400)
+  t.equal(response.status, 400);
   t.deepEqual(response.data, {
     testString: ['must be string'],
     testRequired: ['required'],
     testRequiredAgain: ['required']
-  })
+  });
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create item in collection without using all fields', async t => {
-  t.plan(3)
-  await reset()
+  t.plan(3);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -89,7 +89,7 @@ test('create item in collection without using all fields', async t => {
         testOptionalTwo: ['string']
       }
     }
-  })
+  });
 
   // Make request
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
@@ -97,20 +97,20 @@ test('create item in collection without using all fields', async t => {
     data: {
       testOptionalOne: 'test'
     }
-  })
+  });
 
-  t.equal(response.status, 201)
-  t.ok(response.data.id)
-  t.equal(response.data.testOptionalOne, 'test')
+  t.equal(response.status, 201);
+  t.ok(response.data.id);
+  t.equal(response.data.testOptionalOne, 'test');
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create item in collection with custom validation error', async t => {
-  t.plan(2)
-  await reset()
+  t.plan(2);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -121,7 +121,7 @@ test('create item in collection with custom validation error', async t => {
         test: ['required', 'string', 'value == "something" ? null : "must be something"']
       }
     }
-  })
+  });
 
   // Make request
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
@@ -129,21 +129,21 @@ test('create item in collection with custom validation error', async t => {
     data: {
       test: 'test1'
     }
-  })
+  });
 
-  t.equal(response.status, 400)
+  t.equal(response.status, 400);
   t.deepEqual(response.data, {
     test: ['must be something']
-  })
+  });
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create item in collection with customer presenter', async t => {
-  t.plan(5)
-  await reset()
+  t.plan(5);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -158,7 +158,7 @@ test('create item in collection with customer presenter', async t => {
         'data.testToRemove = undefined'
       ]
     }
-  })
+  });
 
   // Make request
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
@@ -167,28 +167,28 @@ test('create item in collection with customer presenter', async t => {
       test: 'test1',
       testToRemove: 'be_gone'
     }
-  })
+  });
 
-  t.equal(response.status, 201)
-  t.equal(response.data.test, 'test1')
-  t.notOk(response.data.testToRemove)
-  t.ok(response.data.id)
+  t.equal(response.status, 201);
+  t.equal(response.data.test, 'test1');
+  t.notOk(response.data.testToRemove);
+  t.ok(response.data.id);
 
   // Find record
   const found = await httpRequest(
     `/v1/databases/test/collections/test/records/${response.data.id}`
-  )
+  );
 
-  t.notOk(found.data.testToRemove)
+  t.notOk(found.data.testToRemove);
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create item in collection with customer mutation', async t => {
-  t.plan(4)
-  await reset()
+  t.plan(4);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -202,7 +202,7 @@ test('create item in collection with customer mutation', async t => {
         'data.test = concat(data.test, "-changed")'
       ]
     }
-  })
+  });
 
   // Make request
   const response = await httpRequest('/v1/databases/test/collections/test/records', {
@@ -210,18 +210,18 @@ test('create item in collection with customer mutation', async t => {
     data: {
       test: 'test1'
     }
-  })
+  });
 
-  t.equal(response.status, 201)
-  t.equal(response.data.test, 'test1-changed')
-  t.ok(response.data.id)
+  t.equal(response.status, 201);
+  t.equal(response.data.test, 'test1-changed');
+  t.ok(response.data.id);
 
   // Find record
   const found = await httpRequest(
     `/v1/databases/test/collections/test/records/${response.data.id}`
-  )
+  );
 
-  t.equal(found.data.test, 'test1-changed')
+  t.equal(found.data.test, 'test1-changed');
 
-  await server.stop()
-})
+  await server.stop();
+});

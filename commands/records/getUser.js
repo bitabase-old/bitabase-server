@@ -1,9 +1,9 @@
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
-const ErrorObject = require('../../modules/error')
+const ErrorObject = require('../../modules/error');
 
 function bcryptCompare (text, hash) {
-  return bcrypt.compare(text, hash)
+  return bcrypt.compare(text, hash);
 }
 
 module.exports = config => async function (db, username, password) {
@@ -12,15 +12,15 @@ module.exports = config => async function (db, username, password) {
     let user = await db.all(
       'SELECT * FROM users WHERE username = ?',
       [username]
-    )
-    user = user[0]
+    );
+    user = user[0];
 
-    const passwordMatched = await bcryptCompare(password, user.password)
+    const passwordMatched = await bcryptCompare(password, user.password);
 
     if (user && passwordMatched) {
-      return user
+      return user;
     } else {
-      throw new ErrorObject({ code: 401, friendly: 'incorrect username and password' })
+      throw new ErrorObject({ code: 401, friendly: 'incorrect username and password' });
     }
   }
-}
+};

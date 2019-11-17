@@ -1,31 +1,31 @@
-const test = require('tape')
-const httpRequest = require('./helpers/httpRequest')
-const reset = require('./helpers/reset')
-const createServer = require('../server')
+const test = require('tape');
+const httpRequest = require('./helpers/httpRequest');
+const reset = require('./helpers/reset');
+const createServer = require('../server');
 
 test('list collections: empty', async t => {
-  t.plan(1)
-  await reset()
+  t.plan(1);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'get'
-  })
+  });
 
   t.deepEqual(response.data, {
     count: 0,
     items: []
-  })
+  });
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('list collections: one db', async t => {
-  t.plan(1)
-  await reset()
+  t.plan(1);
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   // Create a collection
   await httpRequest('/v1/databases/test/collections', {
@@ -38,7 +38,7 @@ test('list collections: one db', async t => {
         test: ['required', 'string']
       }
     }
-  })
+  });
 
   // Create a record
   await httpRequest('/v1/databases/test/collections/test', {
@@ -46,33 +46,33 @@ test('list collections: one db', async t => {
     data: {
       test: 'onse'
     }
-  })
+  });
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'get'
-  })
+  });
 
   t.deepEqual(response.data, {
     count: 1,
     items: ['test']
-  })
+  });
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('update collection', async t => {
-  t.plan(2)
+  t.plan(2);
 
-  await reset()
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       name: 'test'
     }
-  })
+  });
 
   const addFieldsResponse = await httpRequest('/v1/databases/test/collections/test', {
     method: 'put',
@@ -85,9 +85,9 @@ test('update collection', async t => {
       }
     },
     validateStatus: status => status < 500
-  })
+  });
 
-  t.equal(addFieldsResponse.status, 200)
+  t.equal(addFieldsResponse.status, 200);
 
   const removeFieldResponse = await httpRequest('/v1/databases/test/collections/test', {
     method: 'put',
@@ -99,19 +99,19 @@ test('update collection', async t => {
       }
     },
     validateStatus: status => status < 500
-  })
+  });
 
-  t.equal(removeFieldResponse.status, 200)
+  t.equal(removeFieldResponse.status, 200);
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create new collection', async t => {
-  t.plan(1)
+  t.plan(1);
 
-  await reset()
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'post',
@@ -153,19 +153,19 @@ test('create new collection', async t => {
       }
     },
     validateStatus: status => status < 500
-  })
+  });
 
-  t.equal(response.status, 201)
+  t.equal(response.status, 201);
 
-  await server.stop()
-})
+  await server.stop();
+});
 
 test('create new collection -> duplicate collectionName', async t => {
-  t.plan(2)
+  t.plan(2);
 
-  await reset()
+  await reset();
 
-  const server = await createServer().start()
+  const server = await createServer().start();
 
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
@@ -173,7 +173,7 @@ test('create new collection -> duplicate collectionName', async t => {
       name: 'newcollection'
     },
     validateStatus: status => status < 500
-  })
+  });
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'post',
@@ -181,10 +181,10 @@ test('create new collection -> duplicate collectionName', async t => {
       name: 'newcollection'
     },
     validateStatus: status => status < 500
-  })
+  });
 
-  t.equal(response.status, 422)
-  t.deepEqual(response.data, { errors: { name: 'already taken' } })
+  t.equal(response.status, 422);
+  t.deepEqual(response.data, { errors: { name: 'already taken' } });
 
-  await server.stop()
-})
+  await server.stop();
+});
