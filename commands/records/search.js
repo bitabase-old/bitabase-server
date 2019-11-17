@@ -3,7 +3,6 @@ const fs = require('fs')
 const path = require('path')
 const access = promisify(fs.access)
 
-const config = require('../../config')
 const connect = require('../../modules/db')
 
 function sendError (statusCode, message, res) {

@@ -28,6 +28,7 @@ module.exports = appConfig => async function (req, res, params) {
 
     // Validation
     const errors = {}
+
     Object.keys(config.schema).forEach(field => {
       if (config.schema[field].includes('required') && !data[field]) {
         errors[field] = errors[field] || []

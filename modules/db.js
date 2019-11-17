@@ -2,7 +2,6 @@ const path = require('path')
 const ensureDirectoryExists = require('./ensureDirectoryExists')
 const { promisify } = require('util')
 
-const config = require('../config')
 const sqlite3 = require('sqlite3').verbose()
 
 function createDatabase (filename, resolve) {

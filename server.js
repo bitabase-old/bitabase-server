@@ -3,7 +3,7 @@ const defaultConfig = require('./config')
 
 const createRouter = require('find-my-way')
 
-function createServer (configOverrides={}) {
+function createServer (configOverrides = {}) {
   const config = {
     ...defaultConfig,
     ...configOverrides
@@ -26,7 +26,7 @@ function createServer (configOverrides={}) {
 
     console.log(`[bitabase-server] Listening on port ${config.port}`)
 
-    return { start, stop}
+    return { start, stop }
   }
 
   function stop () {
