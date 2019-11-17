@@ -32,7 +32,7 @@ async function getConfig (filename) {
   })
 }
 
-module.exports = async function (req, res, params) {
+module.exports = config => async function (req, res, params) {
   const data = await parseJsonBody(req)
   data.id = params.collectionId
 
@@ -43,7 +43,7 @@ module.exports = async function (req, res, params) {
   }
 
   // Configuration
-  const configFile = path.resolve(__dirname, '../../data', `${params.databaseName}/${data.id}.json`)
+  const configFile = path.resolve(config.databasePath, `${params.databaseName}/${data.id}.json`)
 
   await ensureDirectoryExists(configFile, { resolve: true })
 
@@ -55,7 +55,7 @@ module.exports = async function (req, res, params) {
   await writeFile(configFile, JSON.stringify(data))
 
   // Alter db
-  const db = await connect(`${params.databaseName}/${data.id}.db`)
+  const db = await connect(config.databasePath, `${params.databaseName}/${data.id}.db`)
 
   const existingFields = (await db.all(`PRAGMA table_info(${data.id})`))
     .map(field => field.name)

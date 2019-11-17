@@ -2,6 +2,7 @@ const path = require('path')
 const ensureDirectoryExists = require('./ensureDirectoryExists')
 const { promisify } = require('util')
 
+const config = require('../config')
 const sqlite3 = require('sqlite3').verbose()
 
 function createDatabase (filename, resolve) {
@@ -36,13 +37,13 @@ function createDatabase (filename, resolve) {
   })
 }
 
-function connect (filename) {
+function connect (databasePath, filename) {
   return new Promise((resolve) => {
     if (filename.includes('..')) {
       throw new Error('db can not contain ..')
     }
 
-    filename = path.resolve(__dirname, '../data', filename)
+    filename = path.resolve(databasePath, filename)
     ensureDirectoryExists(filename, { resolve: true })
       .then(() => createDatabase(filename, resolve))
   })

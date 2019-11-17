@@ -1,7 +1,7 @@
 const test = require('tape')
 const httpRequest = require('./helpers/httpRequest')
 const reset = require('./helpers/reset')
-const server = require('../server')
+const createServer = require('../server')
 
 async function createTestCollection () {
   await httpRequest('/v1/databases/test/collections', {
@@ -19,7 +19,7 @@ test('list items in collection when empty', async t => {
   t.plan(1)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   await createTestCollection()
 
@@ -39,7 +39,7 @@ test('create item in collection with built in validation error', async t => {
   t.plan(2)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -77,7 +77,7 @@ test('create item in collection without using all fields', async t => {
   t.plan(3)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -110,7 +110,7 @@ test('create item in collection with custom validation error', async t => {
   t.plan(2)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -143,7 +143,7 @@ test('create item in collection with customer presenter', async t => {
   t.plan(5)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {
@@ -188,7 +188,7 @@ test('create item in collection with customer mutation', async t => {
   t.plan(4)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create test collection with validation
   await httpRequest('/v1/databases/test/collections', {

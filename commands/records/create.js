@@ -13,18 +13,18 @@ function sendError (statusCode, message, res) {
   res.end(JSON.stringify(message, null, 2))
 }
 
-module.exports = async function (req, res, params) {
+module.exports = appConfig => async function (req, res, params) {
   try {
     const data = await parseJsonBody(req)
     const account = params.databaseName
 
-    const collection = await getCollection(account, params.collectionId)
+    const collection = await getCollection(appConfig)(account, params.collectionId)
 
     const { configFile, config } = collection
 
-    const db = await connect(configFile + '.db')
+    const db = await connect(appConfig.databasePath, configFile + '.db')
 
-    const user = await getUser(db, req.headers.username, req.headers.password)
+    const user = await getUser(appConfig)(db, req.headers.username, req.headers.password)
 
     // Validation
     const errors = {}

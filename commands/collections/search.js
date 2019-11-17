@@ -5,8 +5,8 @@ const readdir = promisify(fs.readdir)
 
 const ensureDirectoryExists = require('../../modules/ensureDirectoryExists')
 
-module.exports = async function (req, res, params) {
-  const configFile = path.resolve(__dirname, `../../data/${params.databaseName}/`)
+module.exports = config => async function (req, res, params) {
+  const configFile = path.resolve(config.databasePath, params.databaseName)
   await ensureDirectoryExists(configFile)
 
   let collections = await readdir(configFile)

@@ -1,13 +1,13 @@
 const test = require('tape')
 const httpRequest = require('./helpers/httpRequest')
 const reset = require('./helpers/reset')
-const server = require('../server')
+const createServer = require('../server')
 
 test('list collections: empty', async t => {
   t.plan(1)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'get'
@@ -25,7 +25,7 @@ test('list collections: one db', async t => {
   t.plan(1)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   // Create a collection
   await httpRequest('/v1/databases/test/collections', {
@@ -65,7 +65,7 @@ test('update collection', async t => {
 
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
@@ -111,7 +111,7 @@ test('create new collection', async t => {
 
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'post',

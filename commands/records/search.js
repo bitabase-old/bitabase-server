@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const access = promisify(fs.access)
 
+const config = require('../../config')
 const connect = require('../../modules/db')
 
 function sendError (statusCode, message, res) {
@@ -12,7 +13,7 @@ function sendError (statusCode, message, res) {
   res.end(JSON.stringify(message, null, 2))
 }
 
-module.exports = async function (req, res, params) {
+module.exports = config => async function (req, res, params) {
   const databaseName = params.databaseName
 
   if (databaseName.match(/[^a-z0-9]/gi, '')) {
@@ -25,7 +26,7 @@ module.exports = async function (req, res, params) {
     return sendError(404, {}, res)
   }
 
-  const configFile = path.resolve(__dirname, `../../data/${databaseName}/${params.collectionId}`)
+  const configFile = path.resolve(config.databasePath, `${databaseName}/${params.collectionId}`)
 
   try {
     await access(configFile + '.json', fs.constants.F_OK)
@@ -33,7 +34,7 @@ module.exports = async function (req, res, params) {
     return sendError(404, {}, res)
   }
 
-  const db = await connect(configFile + '.db')
+  const db = await connect(config.databasePath, configFile + '.db')
 
   const rows = await db.all(`SELECT * FROM ${params.collectionId}`)
 

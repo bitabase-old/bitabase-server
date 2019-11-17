@@ -1,10 +1,14 @@
+const path = require('path')
+
 const config = {
   dev: {
-    port: 8000
+    port: 8000,
+    databasePath: path.resolve(__dirname, '../data')
   },
 
   production: {
-    port: 10000
+    port: 10000,
+    databasePath: path.resolve(__dirname, '../data')
   }
 }
 

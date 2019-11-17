@@ -6,7 +6,7 @@ const readFile = promisify(fs.readFile)
 
 const ErrorObject = require('../../modules/error')
 
-module.exports = async function (account, collectionId) {
+module.exports = config => async function (account, collectionId) {
   if (account.match(/[^a-z0-9]/gi, '')) {
     console.log('Invalid database name')
     throw ErrorObject({ code: 404 })
@@ -17,16 +17,20 @@ module.exports = async function (account, collectionId) {
     throw ErrorObject({ code: 404 })
   }
 
-  const configFile = path.resolve(__dirname, `../../data/${account}/${collectionId}`)
-
+  const collectionConfigFile = path.resolve(config.databasePath, `${account}/${collectionId}`)
   try {
-    await access(configFile + '.json', fs.constants.F_OK)
+    await access(collectionConfigFile + '.json', fs.constants.F_OK)
   } catch (err) {
     throw ErrorObject({ code: 404 })
   }
 
-  let config = await readFile(configFile + '.json', 'utf8')
-  config = JSON.parse(config)
+  let collectionConfig = await readFile(collectionConfigFile + '.json', 'utf8')
+  collectionConfig = JSON.parse(collectionConfig)
 
-  return { config, configFile, account, collectionId }
+  return {
+    config: collectionConfig,
+    configFile: collectionConfigFile,
+    account,
+    collectionId
+  }
 }

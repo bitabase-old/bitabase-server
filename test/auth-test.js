@@ -1,7 +1,7 @@
 const test = require('tape')
 const httpRequest = require('./helpers/httpRequest')
 const reset = require('./helpers/reset')
-const server = require('../server')
+const createServer = require('../server')
 
 function applyRulesToUsercollection () {
   return httpRequest('/v1/databases/test/collections/users', {
@@ -72,8 +72,7 @@ test('create user collection without permission', async t => {
   t.plan(9)
   await reset()
 
-  await server.start()
-
+  const server = await createServer().start()
   await createUserCollection()
 
   const adminUser = await createUser({ groups: ['manage_users'] })
@@ -102,7 +101,7 @@ test('create user collection as user with permission', async t => {
   t.plan(5)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   await createUserCollection()
 
@@ -138,7 +137,7 @@ test('auth with invalid details', async t => {
   t.plan(2)
   await reset()
 
-  await server.start()
+  const server = await createServer().start()
 
   await createUserCollection()
 

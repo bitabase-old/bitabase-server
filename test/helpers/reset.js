@@ -1,11 +1,10 @@
 const fs = require('fs')
 const path = require('path')
+const config = require('../../config')
 
 module.exports = function () {
   return new Promise((resolve, reject) => {
-    const dataFolder = path.resolve(__dirname, '../../data')
-
-    fs.rmdir(dataFolder, { recursive: true }, err => {
+    fs.rmdir(config.databasePath, { recursive: true }, err => {
       if (err) {
         return reject(err)
       }
