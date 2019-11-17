@@ -3,7 +3,7 @@ const defaultConfig = require('./config')
 
 const createRouter = require('find-my-way')
 
-module.exports = function createServer (configOverrides={}) {
+function createServer (configOverrides={}) {
   const config = {
     ...defaultConfig,
     ...configOverrides
@@ -36,3 +36,5 @@ module.exports = function createServer (configOverrides={}) {
 
   return { start, stop }
 }
+
+module.exports = createServer
