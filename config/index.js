@@ -8,7 +8,7 @@ const config = {
 
   production: {
     port: 10000,
-    databasePath: path.resolve(__dirname, '../data')
+    databasePath: '/var/data'
   }
 };
 
