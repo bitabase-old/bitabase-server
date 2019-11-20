@@ -2,6 +2,7 @@ const connect = require('../../modules/db');
 const getCollection = require('./getCollection');
 const getUser = require('./getUser');
 const parseJsonBody = require('../../modules/parseJsonBody');
+const sendJsonResponse = require('../../modules/sendJsonResponse');
 const evaluate = require('../../modules/evaluate');
 
 const uuidv4 = require('uuid').v4;
@@ -18,7 +19,18 @@ module.exports = appConfig => async function (req, res, params) {
     const data = await parseJsonBody(req);
     const account = params.databaseName;
 
-    const collection = await getCollection(appConfig)(account, params.collectionId);
+    let collection;
+    try {
+      collection = await getCollection(appConfig)(account, params.collectionId);
+    } catch (error) {
+      if (error.code !== 404) {
+        throw error;
+      }
+    }
+
+    if (!collection) {
+      return sendJsonResponse(404, { error: `the collection "${account}/${params.collectionId}" does not exist` }, res);
+    }
 
     const { configFile, config } = collection;
 
@@ -28,6 +40,11 @@ module.exports = appConfig => async function (req, res, params) {
 
     // Validation
     const errors = {};
+
+    if (!config.schema) {
+      console.log('No schema provided', config);
+      return sendJsonResponse(500, {}, res);
+    }
 
     Object.keys(config.schema).forEach(field => {
       if (config.schema[field].includes('required') && !data[field]) {

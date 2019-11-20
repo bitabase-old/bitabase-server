@@ -4,24 +4,24 @@ const path = require('path');
 const access = promisify(fs.access);
 const readFile = promisify(fs.readFile);
 
-const ErrorObject = require('../../modules/error');
+const ErrorWithObject = require('error-with-object');
 
 module.exports = config => async function (account, collectionId) {
   if (account.match(/[^a-z0-9]/gi, '')) {
     console.log('Invalid database name');
-    throw ErrorObject({ code: 404 });
+    throw ErrorWithObject({ code: 404 });
   }
 
   if (collectionId.match(/[^a-z0-9]/gi, '')) {
     console.log('Invalid collection ID');
-    throw ErrorObject({ code: 404 });
+    throw ErrorWithObject({ code: 404 });
   }
 
   const collectionConfigFile = path.resolve(config.databasePath, `${account}/${collectionId}`);
   try {
     await access(collectionConfigFile + '.json', fs.constants.F_OK);
-  } catch (err) {
-    throw ErrorObject({ code: 404 });
+  } catch (error) {
+    throw new ErrorWithObject({ code: 404, error });
   }
 
   let collectionConfig = await readFile(collectionConfigFile + '.json', 'utf8');
