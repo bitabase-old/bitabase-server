@@ -1,9 +1,10 @@
 const connect = require('../../modules/db');
 const getCollection = require('./getCollection');
-const getUser = require('./getUser');
 const finalStream = require('final-stream');
 const writeResponse = require('write-response');
-const evaluate = require('../../modules/evaluate');
+const {promisify} = require('util');
+const getUser = require('./getUser');
+const evaluate = promisify(require('../../modules/evaluate'));
 
 const uuidv4 = require('uuid').v4;
 
@@ -33,7 +34,7 @@ module.exports = appConfig => async function (request, response, params) {
 
       const db = await connect(appConfig.databasePath, configFile + '.db');
 
-      const user = await getUser(appConfig)(db, request.headers.username, request.headers.password);
+      const user = await promisify(getUser(appConfig))(db, request.headers.username, request.headers.password);
 
       // Validation
       const errors = {};
@@ -50,27 +51,27 @@ module.exports = appConfig => async function (request, response, params) {
         }
       });
 
-      Object.keys(data).forEach(field => {
+      const promises = Object.keys(data).map(async field => {
         if (!config.schema[field]) {
           errors[field] = errors[field] || [];
           errors[field].push('unknown field');
           return;
         }
 
-        config.schema[field].forEach(checkFn => {
+        const promises = config.schema[field].map(async checkFn => {
           if (checkFn === 'required') {
             return;
           }
 
           if (checkFn === 'string') {
-            checkFn = 'typeOf(value) == "string" ? null : "must be string"';
+            checkFn = 'getType(value) == "string" ? null : "must be string"';
           }
 
           if (checkFn === 'array') {
-            checkFn = 'typeOf(value) == "Array" ? null : "must be array"';
+            checkFn = 'getType(value) == "Array" ? null : "must be array"';
           }
 
-          const invalid = evaluate(checkFn, {
+          const invalid = await evaluate(checkFn, {
             value: data[field],
             user
           });
@@ -80,7 +81,11 @@ module.exports = appConfig => async function (request, response, params) {
             errors[field].push(invalid);
           }
         });
+
+        await Promise.all(promises);
       });
+
+      await Promise.all(promises);
 
       if (Object.values(errors).length > 0) {
         return writeResponse(400, errors, response);
@@ -88,9 +93,10 @@ module.exports = appConfig => async function (request, response, params) {
 
       // Rules
       if (config.rules && config.rules.POST) {
-        const ruleErrors = []
-        ;(config.rules.POST || []).forEach(rule => {
-          const result = evaluate(rule, {
+        const ruleErrors = [];
+
+        const promises = (config.rules.POST || []).map(async rule => {
+          const result = await evaluate(rule, {
             data, user
           });
 
@@ -98,6 +104,8 @@ module.exports = appConfig => async function (request, response, params) {
             ruleErrors.push(result);
           }
         });
+
+        await Promise.all(promises);
 
         if (Object.values(ruleErrors).length > 0) {
           return writeResponse(400, ruleErrors, response);
@@ -109,13 +117,19 @@ module.exports = appConfig => async function (request, response, params) {
         if (config.schema[field].includes('array')) {
           data[field] = JSON.stringify(data[field]);
         }
-      })
-
-      ;(config.mutations || []).forEach(mutation => {
-        evaluate(mutation, {
-          data, user
-        });
       });
+
+      const mutations = await Promise.all(
+        (config.mutations || []).map(async mutation => {
+          return await evaluate(mutation, {
+            data, user
+          });
+        })
+      );
+
+      mutations.forEach(mutation => {
+        data = {...data, ...mutation}
+      })
 
       // Insert record
       const sql = `
@@ -132,11 +146,17 @@ module.exports = appConfig => async function (request, response, params) {
       await db.close()
 
       // Presenters
-      ;(config.presenters || []).forEach(presenter => {
-        evaluate(presenter, {
-          data, user
-        });
-      });
+      const presenters = await Promise.all(
+        (config.presenters || []).map(async presenter => {
+          return await evaluate(presenter, {
+            data, user
+          });
+        })
+      );
+
+      presenters.forEach(presenter => {
+        data = {...data, ...presenter}
+      })
 
       writeResponse(201, Object.assign(data, { id }), response);
     } catch (error) {

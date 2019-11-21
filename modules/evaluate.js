@@ -1,27 +1,41 @@
-const { create, all } = require('mathjs');
-const math = create(all);
-const limitedEvaluate = math.evaluate;
+const presh = require('presh')
+const righto = require('righto')
 
-const bcrypt = require('bcrypt');
+const hashText = require('pbkdf2-wrapper/hashText')
+const verifyHash = require('pbkdf2-wrapper/verifyHash')
 
-function bcryptEncrypt (text) {
-  return bcrypt.hashSync(text, 10);
+function evaluate (script, scope, callback) {
+  if (!callback) {
+    throw new Error('no callback provided')
+  }
+
+  scope = {
+    concat: (...args) => args.join(''),
+    length: (thing) => thing.length,
+    getType: (item) => {
+      return Array.isArray(item) ? 'Array' : typeof item
+    },
+    includes: function (obj, key, value) {
+      return !!(obj && obj[key] && obj[key].includes && obj[key].includes(value));
+    },
+    hashText: (text) => righto(hashText, text),
+    verifyHash: (plain, hashed) => righto(verifyHash, plain, hashed),
+    ...scope
+  };
+
+  const result = presh(script, scope);
+
+  if (result.error) {
+    return callback(result.error);
+  }
+
+  result.value(function(error, value){
+    if (result.error) {
+      return callback(result.error);
+    }
+
+    callback(null, value);
+  });
 }
 
-math.import({
-  equal: function (a, b) { return a === b; },
-  length: function (what) { return what.length; },
-  includes: function (obj, key, value) {
-    return !!(obj && obj[key] && obj[key].includes && obj[key].includes(value));
-  },
-  bcrypt: function (text) { return bcryptEncrypt(text); },
-  unequal: function (a, b) { return a !== b; },
-  import: function () { throw new Error('Function import is disabled'); },
-  createUnit: function () { throw new Error('Function createUnit is disabled'); },
-  evaluate: function () { throw new Error('Function evaluate is disabled'); },
-  parse: function () { throw new Error('Function parse is disabled'); },
-  simplify: function () { throw new Error('Function simplify is disabled'); },
-  derivative: function () { throw new Error('Function derivative is disabled'); }
-}, { override: true });
-
-module.exports = limitedEvaluate;
+module.exports = evaluate;

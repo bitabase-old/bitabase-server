@@ -127,28 +127,28 @@ test('create new collection', async t => {
 
       // These will be run on each record before presenting back to the client
       presenters: [
-        'delete data.password'
+        '{password: data.password}'
       ],
 
       // These will be run on each record before saving to the database
       mutations: [
-        'data.password = bcrypt(data.password)'
+        '{password: hashText(data.password)}'
       ],
 
       // You can also set rules for each method
       rules: {
         POST: [
           // Allow anyone to register, but only admins to add permissions
-          'data.permissions.length === 0 || user.permissions.includes("admin")'
+          'length(data.permissions) === 0 || includes("admin" user.permissions)'
         ],
         PUT: [
-          'user.permissions.includes("admin")'
+          'includes("admin" user.permissions)'
         ],
         PATCH: [
-          'user.permissions.includes("admin")'
+          'includes("admin" user.permissions)'
         ],
         DELETE: [
-          'error("can not delete people")'
+          '"can not delete people"'
         ]
       }
     },

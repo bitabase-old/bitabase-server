@@ -1,5 +1,6 @@
-const evaluate = require('../../modules/evaluate');
 const getCollection = require('./getCollection');
+const {promisify} = require('util');
+const evaluate = promisify(require('../../modules/evaluate'));
 const getUser = require('./getUser');
 const connect = require('../../modules/db');
 
@@ -17,24 +18,30 @@ module.exports = appConfig => async function (req, res, params) {
 
   const db = await connect(appConfig.databasePath, configFile + '.db');
 
-  const user = await getUser(appConfig)(db, req.headers.username, req.headers.password);
+  const user = await promisify(getUser(appConfig))(db, req.headers.username, req.headers.password);
 
   const rows = await db.all(`SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId]);
 
   await db.close();
 
-  const data = rows[0];
+  let data = rows[0];
 
   if (!data) {
     return sendError(404, {}, res);
   }
 
   // Presenters
-  (config.presenters || []).forEach(presenter => {
-    evaluate(presenter, {
-      data, user
-    });
-  });
+  const presenters = await Promise.all(
+    (config.presenters || []).map(async presenter => {
+      return await evaluate(presenter, {
+        data, user
+      });
+    })
+  );
+
+  presenters.forEach(presenter => {
+    data = {...data, ...presenter}
+  })
 
   res.end(JSON.stringify(data));
 };

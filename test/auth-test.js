@@ -14,20 +14,20 @@ function applyRulesToUsercollection () {
         groups: ['array']
       },
       mutations: [
-        'data.password = data.password ? bcrypt(data.password) : undefined'
+        '{password: hashText(data.password)}'
       ],
       presenters: [
-        'data.password = undefined'
+        '{password: undefined}'
       ],
       rules: {
         POST: [
-          'length(data.groups) == 0 or includes(user, "groups", "manage_users") ? "" : "not allowed to add groups"'
+          'length(data.groups) == 0 || includes(user "groups" "manage_users") ? "" : "not allowed to add groups"'
         ],
         PUT: [
-          'includes(user, "groups", "manage_users")'
+          'includes(user "groups" "manage_users")'
         ],
         PATCH: [
-          'includes(user, "groups", "manage_users")'
+          'includes(user "groups" "manage_users")'
         ],
         DELETE: [
           'error("can not delete people")'
@@ -48,10 +48,10 @@ function createUserCollection () {
         groups: ['array']
       },
       mutations: [
-        'data.password = data.password ? bcrypt(data.password) : undefined'
+        '{password: hashText(data.password)}'
       ],
       presenters: [
-        'data.password = undefined'
+        '{password: undefined}'
       ]
     }
   });

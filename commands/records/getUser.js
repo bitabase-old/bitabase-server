@@ -1,26 +1,29 @@
-const bcrypt = require('bcrypt');
+const verifyHash = require('pbkdf2-wrapper/verifyHash')
 
 const ErrorWithObject = require('error-with-object');
 
-function bcryptCompare (text, hash) {
-  return bcrypt.compare(text, hash);
-}
-
-module.exports = config => async function (db, username, password) {
+module.exports = config => function (db, username, password, callback) {
   // Get user if logged in
   if (username && password) {
-    let user = await db.all(
+    let user = db.all(
       'SELECT * FROM users WHERE username = ?',
       [username]
-    );
-    user = user[0];
+    ).then(user => {
+      user = user[0];
 
-    const passwordMatched = await bcryptCompare(password, user.password);
+      verifyHash(password, user.password, function (error, passwordMatched) {
+        if (error) {
+          return callback(error);
+        }
 
-    if (user && passwordMatched) {
-      return user;
-    } else {
-      throw new ErrorWithObject({ code: 401, friendly: 'incorrect username and password' });
-    }
+        if (user && passwordMatched) {
+          callback(null, user);
+        } else {
+          callback(new ErrorWithObject({ code: 401, friendly: 'incorrect username and password' }));
+        }
+      });
+    });
+  } else {
+    callback(null, null)
   }
 };

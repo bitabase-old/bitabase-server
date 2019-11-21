@@ -155,7 +155,7 @@ test('create item in collection with customer presenter', async t => {
         testToRemove: ['required', 'string']
       },
       presenters: [
-        'data.testToRemove = undefined'
+        '{testToRemove: undefined}'
       ]
     }
   });
@@ -199,7 +199,7 @@ test('create item in collection with customer mutation', async t => {
         test: ['required', 'string']
       },
       mutations: [
-        'data.test = concat(data.test, "-changed")'
+        '{test: concat(data.test "-changed")}'
       ]
     }
   });
