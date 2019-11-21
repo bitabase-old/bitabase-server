@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index",
-    "test": "node test"
+    "test": "c8 -o /tmp node test"
   },
   "author": "",
   "license": "ISC",

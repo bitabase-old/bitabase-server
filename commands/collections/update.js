@@ -3,20 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 const writeResponse = require('write-response');
+const finalStream = require('final-stream');
 
 const writeFile = promisify(fs.writeFile);
 
 const validate = require('./validate');
 const connect = require('../../modules/db');
 const ensureDirectoryExists = require('../../modules/ensureDirectoryExists');
-const finalStream = require('final-stream');
-
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  });
-  res.end(JSON.stringify(message, null, 2));
-}
 
 async function getConfig (filename) {
   return new Promise((resolve, reject) => {
@@ -34,10 +27,10 @@ async function getConfig (filename) {
   });
 }
 
-module.exports = config => function (req, res, params) {
-  finalStream(req, JSON.parse, async function (error, data) {
+module.exports = config => function (request, response, params) {
+  finalStream(request, JSON.parse, async function (error, data) {
     if (error) {
-      writeResponse(500, 'Unexpected Server Error', res);
+      writeResponse(500, 'Unexpected Server Error', response);
       return;
     }
 
@@ -46,7 +39,7 @@ module.exports = config => function (req, res, params) {
     // Validation
     const errors = validate(data);
     if (errors) {
-      return sendError(422, { errors }, res);
+      return writeResponse(422, { errors }, response);
     }
 
     // Configuration
@@ -56,7 +49,7 @@ module.exports = config => function (req, res, params) {
 
     const existingConfig = await getConfig(configFile);
     if (!existingConfig) {
-      return sendError(404, {}, res);
+      return writeResponse(404, {}, response);
     }
 
     await writeFile(configFile, JSON.stringify(data));
@@ -85,9 +78,6 @@ module.exports = config => function (req, res, params) {
     await db.close();
 
     // Respond
-    res.writeHead(200, {
-      'Content-Type': 'application/json'
-    });
-    res.end(JSON.stringify(data));
+    writeResponse(200, data, response);
   });
 };
