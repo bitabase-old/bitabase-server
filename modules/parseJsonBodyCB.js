@@ -1,4 +1,4 @@
-const { ErrorObject } = require('./error');
+const ErrorWithObject = require('error-with-object');
 
 function parseBody (request, callback) {
   let body = [];
@@ -15,7 +15,7 @@ function parseBody (request, callback) {
         try {
           return callback(null, JSON.parse(body));
         } catch (error) {
-          return callback(new ErrorObject({ code: 400, error, body }));
+          return callback(new ErrorWithObject({ code: 400, error, body }));
         }
       }
 

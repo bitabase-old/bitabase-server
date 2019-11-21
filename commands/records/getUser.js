@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 
-const ErrorObject = require('../../modules/error');
+const ErrorWithObject = require('error-with-object');
 
 function bcryptCompare (text, hash) {
   return bcrypt.compare(text, hash);
@@ -20,7 +20,7 @@ module.exports = config => async function (db, username, password) {
     if (user && passwordMatched) {
       return user;
     } else {
-      throw new ErrorObject({ code: 401, friendly: 'incorrect username and password' });
+      throw new ErrorWithObject({ code: 401, friendly: 'incorrect username and password' });
     }
   }
 };

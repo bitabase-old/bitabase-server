@@ -9,7 +9,7 @@ const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
 const parseJsonBody = require('../../modules/parseJsonBodyCB');
 const sendJsonResponse = require('../../modules/sendJsonResponse');
-const ErrorObject = require('../../modules/error');
+const ErrorWithObject = require('error-with-object');
 
 function createTableFromSchema (collectionName, fields, connection, callback) {
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE';
@@ -54,7 +54,7 @@ function createConfigFile (databasePath, databaseName, collectionConfig, callbac
       return fs.writeFile(configFile, JSON.stringify(collectionConfig), callback);
     }
 
-    callback(new ErrorObject({
+    callback(new ErrorWithObject({
       statusCode: 422,
       message: { errors: { name: 'already taken' } }
     }));
