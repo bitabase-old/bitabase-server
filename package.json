@@ -26,5 +26,8 @@
     "tape": "^4.11.0",
     "uuid": "^3.3.3",
     "write-response": "^1.2.0"
+  },
+  "devDependencies": {
+    "c8": "^6.0.1"
   }
 }
