@@ -7,15 +7,8 @@ const evaluate = require('../../modules/evaluate');
 
 const uuidv4 = require('uuid').v4;
 
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  });
-  res.end(JSON.stringify(message, null, 2));
-}
-
-module.exports = appConfig => async function (req, res, params) {
-  finalStream(req, JSON.parse, async function (error, data) {
+module.exports = appConfig => async function (request, response, params) {
+  finalStream(request, JSON.parse, async function (error, data) {
     try {
       if (error) {
         throw error;
@@ -33,21 +26,21 @@ module.exports = appConfig => async function (req, res, params) {
       }
 
       if (!collection) {
-        return writeResponse(404, { error: `the collection "${account}/${params.collectionId}" does not exist` }, res);
+        return writeResponse(404, { error: `the collection "${account}/${params.collectionId}" does not exist` }, response);
       }
 
       const { configFile, config } = collection;
 
       const db = await connect(appConfig.databasePath, configFile + '.db');
 
-      const user = await getUser(appConfig)(db, req.headers.username, req.headers.password);
+      const user = await getUser(appConfig)(db, request.headers.username, request.headers.password);
 
       // Validation
       const errors = {};
 
       if (!config.schema) {
         console.log('No schema provided', config);
-        return writeResponse(500, {}, res);
+        return writeResponse(500, {}, response);
       }
 
       Object.keys(config.schema).forEach(field => {
@@ -90,7 +83,7 @@ module.exports = appConfig => async function (req, res, params) {
       });
 
       if (Object.values(errors).length > 0) {
-        return sendError(400, errors, res);
+        return writeResponse(400, errors, response);
       }
 
       // Rules
@@ -107,7 +100,7 @@ module.exports = appConfig => async function (req, res, params) {
         });
 
         if (Object.values(ruleErrors).length > 0) {
-          return sendError(400, ruleErrors, res);
+          return writeResponse(400, ruleErrors, response);
         }
       }
 
@@ -145,13 +138,12 @@ module.exports = appConfig => async function (req, res, params) {
         });
       });
 
-      res.writeHead(201);
-      res.end(JSON.stringify(Object.assign(data, { id })));
+      writeResponse(201, Object.assign(data, { id }), response);
     } catch (error) {
       if (!error.friendly) {
         console.log(error);
       }
-      sendError(error.code || 500, error.friendly, res);
+      writeResponse(error.code || 500, error.friendly, response);
     }
   });
 };

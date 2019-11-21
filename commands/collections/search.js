@@ -11,6 +11,10 @@ module.exports = config => function (request, response, params) {
   const collectionConfigData = righto(fs.readdir, configFile, righto.after(existingDirectory));
 
   collectionConfigData(function (error, collections) {
+    if (error) {
+      console.log(error);
+      return writeResponse(500, 'Unexpected Server Error', response);
+    }
     collections = collections
       .filter(item => item.endsWith('.db'))
       .map(item => item.replace(/\.db$/, ''));
@@ -19,5 +23,5 @@ module.exports = config => function (request, response, params) {
       count: collections.length,
       items: collections
     }, response);
-  })
+  });
 };
