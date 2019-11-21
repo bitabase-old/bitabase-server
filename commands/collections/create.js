@@ -7,8 +7,8 @@ const sqlite = require('sqlite-fp');
 
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
-const parseJsonBody = require('../../modules/parseJsonBodyCB');
-const sendJsonResponse = require('../../modules/sendJsonResponse');
+const parseJsonBody = require('../../modules/parseJsonBody');
+const writeResponse = require('write-response');
 const ErrorWithObject = require('error-with-object');
 
 function createTableFromSchema (collectionName, fields, connection, callback) {
@@ -74,14 +74,14 @@ module.exports = config => function (request, response, params) {
   createdCollection(function (error, result) {
     if (error) {
       if (error.statusCode) {
-        sendJsonResponse(error.statusCode, error.message, response);
+        writeResponse(error.statusCode, error.message, response);
       } else {
         console.log(error);
-        sendJsonResponse(500, 'Unexpected Server Error', response);
+        writeResponse(500, 'Unexpected Server Error', response);
       }
       return;
     }
 
-    sendJsonResponse(201, result, response);
+    writeResponse(201, result, response);
   });
 };
