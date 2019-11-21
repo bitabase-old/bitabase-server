@@ -4,12 +4,12 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 const righto = require('righto');
 const sqlite = require('sqlite-fp');
-
-const validate = require('./validate');
-const connectWithCreate = require('../../modules/connectWithCreate');
 const finalStream = require('final-stream');
 const writeResponse = require('write-response');
 const ErrorWithObject = require('error-with-object');
+
+const validate = require('./validate');
+const connectWithCreate = require('../../modules/connectWithCreate');
 
 function createTableFromSchema (collectionName, fields, connection, callback) {
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE';

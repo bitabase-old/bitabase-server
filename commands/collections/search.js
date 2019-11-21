@@ -1,21 +1,23 @@
-const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
-const readdir = promisify(fs.readdir);
+const righto = require('righto');
+const mkdirp = require('mkdirp');
+const writeResponse = require('write-response');
 
-const ensureDirectoryExists = require('../../modules/ensureDirectoryExists');
-
-module.exports = config => async function (req, res, params) {
+module.exports = config => function (request, response, params) {
   const configFile = path.resolve(config.databasePath, params.databaseName);
-  await ensureDirectoryExists(configFile);
 
-  let collections = await readdir(configFile);
-  collections = collections
-    .filter(item => item.endsWith('.db'))
-    .map(item => item.replace(/\.db$/, ''));
+  const existingDirectory = righto(mkdirp, configFile);
+  const collectionConfigData = righto(fs.readdir, configFile, righto.after(existingDirectory));
 
-  res.end(JSON.stringify({
-    count: collections.length,
-    items: collections
-  }));
+  collectionConfigData(function (error, collections) {
+    collections = collections
+      .filter(item => item.endsWith('.db'))
+      .map(item => item.replace(/\.db$/, ''));
+
+    writeResponse(200, {
+      count: collections.length,
+      items: collections
+    }, response);
+  })
 };
