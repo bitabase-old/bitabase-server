@@ -1,7 +1,7 @@
 const connect = require('../../modules/db');
 const getCollection = require('./getCollection');
 const getUser = require('./getUser');
-const parseJsonBody = require('../../modules/parseJsonBody');
+const finalStream = require('final-stream');
 const writeResponse = require('write-response');
 const evaluate = require('../../modules/evaluate');
 
@@ -15,7 +15,7 @@ function sendError (statusCode, message, res) {
 }
 
 module.exports = appConfig => async function (req, res, params) {
-  parseJsonBody(req, async function (error, data) {
+  finalStream(req, JSON.parse, async function (error, data) {
     try {
       if (error) {
         throw error;
@@ -153,5 +153,5 @@ module.exports = appConfig => async function (req, res, params) {
       }
       sendError(error.code || 500, error.friendly, res);
     }
-  })
+  });
 };

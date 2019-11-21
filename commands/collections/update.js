@@ -2,12 +2,14 @@ const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
 
+const writeResponse = require('write-response');
+
 const writeFile = promisify(fs.writeFile);
 
 const validate = require('./validate');
 const connect = require('../../modules/db');
 const ensureDirectoryExists = require('../../modules/ensureDirectoryExists');
-const parseJsonBody = require('../../modules/parseJsonBody');
+const finalStream = require('final-stream');
 
 function sendError (statusCode, message, res) {
   res.writeHead(statusCode, {
@@ -33,7 +35,12 @@ async function getConfig (filename) {
 }
 
 module.exports = config => function (req, res, params) {
-  parseJsonBody(req, async function (error, data) {
+  finalStream(req, JSON.parse, async function (error, data) {
+    if (error) {
+      writeResponse(500, 'Unexpected Server Error', res);
+      return;
+    }
+
     data.id = params.collectionId;
 
     // Validation

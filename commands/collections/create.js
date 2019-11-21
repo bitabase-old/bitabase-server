@@ -7,7 +7,7 @@ const sqlite = require('sqlite-fp');
 
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
-const parseJsonBody = require('../../modules/parseJsonBody');
+const finalStream = require('final-stream');
 const writeResponse = require('write-response');
 const ErrorWithObject = require('error-with-object');
 
@@ -62,7 +62,7 @@ function createConfigFile (databasePath, databaseName, collectionConfig, callbac
 }
 
 module.exports = config => function (request, response, params) {
-  const parsedData = righto(parseJsonBody, request);
+  const parsedData = righto(finalStream, request, JSON.parse);
   const validData = righto(validate, parsedData);
 
   const configFileCreated = righto(createConfigFile,
