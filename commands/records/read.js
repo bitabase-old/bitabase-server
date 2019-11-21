@@ -1,5 +1,5 @@
 const getCollection = require('./getCollection');
-const {promisify} = require('util');
+const { promisify } = require('util');
 const evaluate = promisify(require('../../modules/evaluate'));
 const getUser = require('./getUser');
 const connect = require('../../modules/db');
@@ -33,15 +33,15 @@ module.exports = appConfig => async function (req, res, params) {
   // Presenters
   const presenters = await Promise.all(
     (config.presenters || []).map(async presenter => {
-      return await evaluate(presenter, {
+      return evaluate(presenter, {
         data, user
       });
     })
   );
 
   presenters.forEach(presenter => {
-    data = {...data, ...presenter}
-  })
+    data = { ...data, ...presenter };
+  });
 
   res.end(JSON.stringify(data));
 };

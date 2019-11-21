@@ -2,7 +2,7 @@ const connect = require('../../modules/db');
 const getCollection = require('./getCollection');
 const finalStream = require('final-stream');
 const writeResponse = require('write-response');
-const {promisify} = require('util');
+const { promisify } = require('util');
 const getUser = require('./getUser');
 const evaluate = promisify(require('../../modules/evaluate'));
 
@@ -121,15 +121,15 @@ module.exports = appConfig => async function (request, response, params) {
 
       const mutations = await Promise.all(
         (config.mutations || []).map(async mutation => {
-          return await evaluate(mutation, {
+          return evaluate(mutation, {
             data, user
           });
         })
       );
 
       mutations.forEach(mutation => {
-        data = {...data, ...mutation}
-      })
+        data = { ...data, ...mutation };
+      });
 
       // Insert record
       const sql = `
@@ -143,20 +143,20 @@ module.exports = appConfig => async function (request, response, params) {
       stmt.run(...[id, ...Object.entries(data).map(o => o[1])]);
       await stmt.finalize();
 
-      await db.close()
+      await db.close();
 
       // Presenters
       const presenters = await Promise.all(
         (config.presenters || []).map(async presenter => {
-          return await evaluate(presenter, {
+          return evaluate(presenter, {
             data, user
           });
         })
       );
 
       presenters.forEach(presenter => {
-        data = {...data, ...presenter}
-      })
+        data = { ...data, ...presenter };
+      });
 
       writeResponse(201, Object.assign(data, { id }), response);
     } catch (error) {

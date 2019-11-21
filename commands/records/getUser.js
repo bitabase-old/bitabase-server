@@ -1,11 +1,11 @@
-const verifyHash = require('pbkdf2-wrapper/verifyHash')
+const verifyHash = require('pbkdf2-wrapper/verifyHash');
 
 const ErrorWithObject = require('error-with-object');
 
 module.exports = config => function (db, username, password, callback) {
   // Get user if logged in
   if (username && password) {
-    let user = db.all(
+    db.all(
       'SELECT * FROM users WHERE username = ?',
       [username]
     ).then(user => {
@@ -24,6 +24,6 @@ module.exports = config => function (db, username, password, callback) {
       });
     });
   } else {
-    callback(null, null)
+    callback(null, null);
   }
 };
