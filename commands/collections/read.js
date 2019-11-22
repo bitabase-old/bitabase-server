@@ -4,7 +4,7 @@ const path = require('path');
 const writeResponse = require('write-response');
 
 const writeResponseError = require('../../modules/writeResponseError');
-const getCollection = require('../records/getCollection');
+const getCollection = require('../../modules/getCollection');
 
 module.exports = config => function (request, response, params) {
   const collection = righto(getCollection(config), params.databaseName, params.collectionId)

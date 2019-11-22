@@ -5,8 +5,8 @@ const finalStream = require('final-stream');
 const writeResponse = require('write-response');
 
 const connectWithCreate = require('../../modules/connectWithCreate');
-const getCollection = require('./getCollection');
-const getUser = require('./getUser');
+const getCollection = require('../../modules/getCollection');
+const getUser = require('../../modules/getUser');
 
 const evaluate = require('../../modules/evaluate');
 

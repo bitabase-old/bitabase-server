@@ -1,7 +1,7 @@
-const getCollection = require('./getCollection');
+const getCollection = require('../../modules/getCollection');
 const { promisify } = require('util');
 const evaluate = promisify(require('../../modules/evaluate'));
-const getUser = require('./getUser');
+const getUser = require('../../modules/getUser');
 const connect = require('../../modules/db');
 
 function sendError (statusCode, message, res) {

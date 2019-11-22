@@ -9,7 +9,7 @@ const finalStream = require('final-stream');
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
 const writeResponseError = require('../../modules/writeResponseError');
-const getCollection = require('../records/getCollection');
+const getCollection = require('../../modules/getCollection');
 
 function getExistingFieldNames (id, dbConnection, callback) {
   sqlite.getAll(`PRAGMA table_info(${id})`, dbConnection, function (error, existingFields) {
