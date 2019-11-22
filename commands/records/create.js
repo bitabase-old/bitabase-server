@@ -8,9 +8,8 @@ const connectWithCreate = require('../../modules/connectWithCreate');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
-
+const applyMutationsToData = require('../../modules/applyMutationsToData');
 const evaluate = require('../../modules/evaluate');
-
 const writeResponseError = require('../../modules/writeResponseError');
 
 const uuidv4 = require('uuid').v4;
@@ -153,33 +152,6 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
   });
 }
 
-function mutateData (collectionConfig, data, user, callback) {
-  const { schema, mutations } = collectionConfig;
-
-  Object.keys(data).forEach(field => {
-    if (schema[field].includes('array')) {
-      data[field] = JSON.stringify(data[field]);
-    }
-  });
-
-  const mutatorFunctions = (mutations || [])
-    .map(mutation => {
-      return righto(evaluate, mutation, { data, user });
-    });
-
-  righto.all(mutatorFunctions)(function (error, mutations) {
-    if (error) {
-      return callback(error);
-    }
-
-    mutations.forEach(mutation => {
-      data = { ...data, ...mutation };
-    });
-
-    callback(null, data);
-  });
-}
-
 module.exports = appConfig => async function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
@@ -192,7 +164,7 @@ module.exports = appConfig => async function (request, response, params) {
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
   const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user);
-  const mutatedData = righto(mutateData, collection.get('config'), data, user, righto.after(validData));
+  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, righto.after(validData));
   const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
 
   const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
