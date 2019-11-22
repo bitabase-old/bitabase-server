@@ -1,45 +1,35 @@
-const { promisify } = require('util');
-const fs = require('fs');
-const path = require('path');
-const access = promisify(fs.access);
+const righto = require('righto');
+const sqlite = require('sqlite-fp');
+const writeResponse = require('write-response');
 
-const connect = require('../../modules/db');
+const getUser = require('../../modules/getUser');
+const getCollection = require('../../modules/getCollection');
+const applyPresentersToData = require('../../modules/applyPresentersToData');
 
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  });
-  res.end(JSON.stringify(message, null, 2));
-}
+module.exports = appConfig => function (request, response, params) {
+  const username = request.headers.username
+  const password = request.headers.password
 
-module.exports = config => async function (req, res, params) {
-  const databaseName = params.databaseName;
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId)
 
-  if (databaseName.match(/[^a-z0-9]/gi, '')) {
-    return sendError(404, {}, res);
-  }
+  const dbConnection = righto(sqlite.connect, collection.get('databaseFile'));
 
-  if (params.collectionId.match(/[^a-z0-9]/gi, '')) {
-    console.log('Invalid collection ID');
-    return sendError(404, {}, res);
-  }
+  const user = righto(getUser(appConfig), dbConnection, username, password);
 
-  const configFile = path.resolve(config.databasePath, `${databaseName}/${params.collectionId}`);
+  const records = righto(sqlite.getAll, `SELECT * FROM ${params.collectionId}`, dbConnection);
 
-  try {
-    await access(configFile + '.json', fs.constants.F_OK);
-  } catch (err) {
-    return sendError(404, {}, res);
-  }
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(records))
 
-  const db = await connect(config.databasePath, configFile + '.db');
+  const presentableRecords = righto(applyPresentersToData, collection.get('config'), records, user, righto.after(closedDatabase))
 
-  const rows = await db.all(`SELECT * FROM ${params.collectionId}`);
+  presentableRecords(function (error, records) {
+    if (error) {
+      return writeResponseError(error)
+    }
 
-  await db.close();
-
-  res.end(JSON.stringify({
-    count: rows.length,
-    items: rows
-  }));
+    writeResponse(200, {
+      count: records.length,
+      items: records
+    }, response)
+  })
 };
