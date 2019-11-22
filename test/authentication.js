@@ -30,7 +30,7 @@ function applyRulesToUsercollection () {
           'includes(user "groups" "manage_users")'
         ],
         DELETE: [
-          'error("can not delete people")'
+          '"can not delete people"'
         ]
       }
     }

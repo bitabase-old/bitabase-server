@@ -11,6 +11,7 @@ function createServer (configOverrides = {}) {
 
   const router = createRouter();
   router.on('GET', '/v1/databases/:databaseName/collections', require('./commands/collections/search.js')(config));
+  router.on('GET', '/v1/databases/:databaseName/collections/:collectionId', require('./commands/collections/read.js')(config));
   router.on('POST', '/v1/databases/:databaseName/collections', require('./commands/collections/create.js')(config));
   router.on('PUT', '/v1/databases/:databaseName/collections/:collectionId', require('./commands/collections/update.js')(config));
 

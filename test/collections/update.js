@@ -30,10 +30,10 @@ test('collections.update: no schema returns validate error', async t => {
     }
   });
 
+  await server.stop();
+
   t.equal(response.status, 400);
   t.deepEqual(response.data, { schema: 'required' });
-
-  await server.stop();
 });
 
 
@@ -79,20 +79,20 @@ test('collections.update: update a collection', async t => {
     validateStatus: status => status < 500
   });
 
-  t.equal(removeFieldResponse.status, 200);
-
   await server.stop();
+
+  t.equal(removeFieldResponse.status, 200);
 });
 
 test('collections.update: add fields to collection', async t => {
-  t.plan(1);
+  t.plan(2);
   await reset();
 
   const server = await createServer().start();
 
   const collection = await createTestCollection();
 
-  const response = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`, {
+  const createResponse = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`, {
     method: 'put',
     data: {
       name: 'test',
@@ -102,8 +102,14 @@ test('collections.update: add fields to collection', async t => {
     }
   });
 
-  t.equal(response.status, 200);
-
+  const validateResponse = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`)
   await server.stop();
+
+  t.equal(createResponse.status, 200);
+  t.deepEqual(validateResponse.data, {
+    id: 'test',
+    name: 'test',
+    schema: { test: [ 'required', 'string' ] }
+  });
 });
 
