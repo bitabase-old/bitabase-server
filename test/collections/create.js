@@ -3,6 +3,8 @@ const httpRequest = require('../helpers/httpRequest');
 const reset = require('../helpers/reset');
 const createServer = require('../../server');
 
+test('create item in collection with built in rule failures');
+
 test('create item in collection with built in validation error', async t => {
   t.plan(2);
   await reset();

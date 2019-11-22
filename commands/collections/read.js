@@ -1,19 +1,20 @@
 const fs = require('fs');
+const righto = require('righto');
 const path = require('path');
 const writeResponse = require('write-response');
 
+const writeResponseError = require('../../modules/writeResponseError');
+const getCollection = require('../../modules/getCollection');
+
 module.exports = config => function (request, response, params) {
-  const collectionConfigPath = path.resolve(config.databasePath, params.databaseName || '_', `${params.collectionId || '_'}.json`);
-  console.log(collectionConfigPath);
-  fs.readFile(collectionConfigPath, 'utf8', function (error, collectionConfig) {
+  const collection = righto(getCollection(config), params.databaseName, params.collectionId)
+  const collectionDefinitionData = righto(fs.readFile, collection.get(c => c.definitionFile), 'utf8')
+
+  collectionDefinitionData(function (error, collectionConfig) {
     if (error) {
-      if (error.code === 'ENOENT') {
-        return writeResponse(404, 'Not Found', response);
-      }
-      console.log(error);
-      return writeResponse(500, 'Unexpected Server Error', response);
+      return writeResponseError(error, response)
     }
 
     writeResponse(200, collectionConfig, response);
-  });
+  })
 };
