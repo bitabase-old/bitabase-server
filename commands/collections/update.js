@@ -9,6 +9,7 @@ const finalStream = require('final-stream');
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
 const writeResponseError = require('../../modules/writeResponseError');
+const getCollection = require('../records/getCollection');
 
 function getExistingFieldNames (id, dbConnection, callback) {
   sqlite.getAll(`PRAGMA table_info(${id})`, dbConnection, function (error, existingFields) {
@@ -47,14 +48,10 @@ function addNewColumnsToCollection (existingFields, data, dbConnection, callback
   righto.all(fieldsToAdd)(callback);
 }
 
-function updateConfigFile (databasePath, databaseName, data, callback) {
-  const configFile = righto.sync(getConfigFilePath, databasePath, databaseName, data.id);
-  const configFolder = righto.sync(path.dirname, configFile);
-
-  const folderExists = righto(mkdirp, configFolder);
-  const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
-
-  const writtenConfigFile = righto(fs.writeFile, configFile, JSON.stringify(data), righto.after(existingConfigFile));
+function updateConfigFile (collection, data, callback) {
+  const writtenConfigFile = righto(
+    fs.writeFile, collection.definitionFile, JSON.stringify(data)
+  );
 
   writtenConfigFile(callback);
 }
@@ -74,10 +71,10 @@ module.exports = appConfig => function (request, response, params) {
     id: params.collectionId
   }));
 
-  const updatedConfigFile = righto(updateConfigFile, appConfig.databasePath, params.databaseName, data);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId)
+  const updatedConfigFile = righto(updateConfigFile, collection, data);
 
-  const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, data.get(data => `${data.id}.db`), righto.after(updatedConfigFile));
-  const dbConnection = righto(connectWithCreate, dbFilePath);
+  const dbConnection = righto(connectWithCreate, collection.get('databaseFile'), righto.after(updatedConfigFile));
 
   const syncedTableFields = righto(syncTableFields, data, dbConnection);
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(syncedTableFields));

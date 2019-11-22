@@ -16,7 +16,6 @@ module.exports = config => async function (req, res, params) {
   const databaseName = params.databaseName;
 
   if (databaseName.match(/[^a-z0-9]/gi, '')) {
-    console.log('Invalid subdomain');
     return sendError(404, {}, res);
   }
 

@@ -3,25 +3,25 @@ const path = require('path');
 
 const ErrorWithObject = require('error-with-object');
 
-module.exports = config => function (account, collectionId, callback) {
+module.exports = config => function (databaseName, collectionName, callback) {
   const notFoundErrorMessage = {
-    error: `the collection "${account}/${collectionId}" does not exist`
+    error: `the collection "${databaseName}/${collectionName}" does not exist`
   };
 
-  if (account.match(/[^a-z0-9]/gi, '')) {
-    return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
+  if (databaseName.match(/[^a-z0-9]/gi, '')) {
+    return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
   }
 
-  if (collectionId.match(/[^a-z0-9]/gi, '')) {
-    return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
+  if (collectionName.match(/[^a-z0-9]/gi, '')) {
+    return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
   }
 
-  const collectionConfigFile = path.resolve(config.databasePath, `${account}/${collectionId}`);
+  const collectionConfigFile = path.resolve(config.databasePath, `${databaseName}/${collectionName}`);
 
   fs.readFile(collectionConfigFile + '.json', 'utf8', function (error, collectionConfig) {
     if (error) {
       if (error.code === 'ENOENT') {
-        return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
+        return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
       }
       return callback(error);
     }
@@ -33,8 +33,8 @@ module.exports = config => function (account, collectionId, callback) {
       configFile: collectionConfigFile,
       definitionFile: collectionConfigFile + '.json',
       databaseFile: collectionConfigFile + '.db',
-      account,
-      collectionId
+      databaseName,
+      collectionName
     });
   });
 };
