@@ -37,6 +37,12 @@ This is a very early attempt at the bitabase rest server.
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">1.3</a></td>
+    <td>GET</td>
+    <td>/v1/databases/:name/collections/:name</td>
+    <td>Read a specific collections</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">1.4</a></td>
     <td>PUT</td>
     <td>/v1/databases/:name/collections/:name</td>
     <td>Update a collection schema</td>

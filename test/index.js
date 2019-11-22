@@ -1,3 +1,8 @@
-require('./auth-test.js');
-require('./collections-test.js');
-require('./database-test.js');
+require('./authentication.js');
+
+require('./collections/create.js');
+require('./collections/read.js');
+require('./collections/update.js');
+require('./collections/search.js');
+
+require('./records/search.js');
