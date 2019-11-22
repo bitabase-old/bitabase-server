@@ -8,6 +8,7 @@ const finalStream = require('final-stream');
 
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
+const writeResponseError = require('../../modules/writeResponseError');
 
 function getExistingFieldNames (id, dbConnection, callback) {
   sqlite.getAll(`PRAGMA table_info(${id})`, dbConnection, function (error, existingFields) {
@@ -83,8 +84,7 @@ module.exports = appConfig => function (request, response, params) {
 
   closedDatabase(function (error, data) {
     if (error) {
-      console.log(error);
-      return writeResponse(500, 'Unexpected Server Error', response);
+      return writeResponseError(error, response)
     }
 
     writeResponse(200, data, response);

@@ -60,52 +60,6 @@ test('list collections: one db', async t => {
   await server.stop();
 });
 
-test('update collection', async t => {
-  t.plan(2);
-
-  await reset();
-
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
-    method: 'post',
-    data: {
-      name: 'test'
-    }
-  });
-
-  const addFieldsResponse = await httpRequest('/v1/databases/test/collections/test', {
-    method: 'put',
-    data: {
-      name: 'test',
-
-      schema: {
-        newfield1: ['required', 'string'],
-        newfield2: ['required', 'string']
-      }
-    },
-    validateStatus: status => status < 500
-  });
-
-  t.equal(addFieldsResponse.status, 200);
-
-  const removeFieldResponse = await httpRequest('/v1/databases/test/collections/test', {
-    method: 'put',
-    data: {
-      name: 'test',
-
-      schema: {
-        newfield1: ['required', 'string']
-      }
-    },
-    validateStatus: status => status < 500
-  });
-
-  t.equal(removeFieldResponse.status, 200);
-
-  await server.stop();
-});
-
 test('create new collection', async t => {
   t.plan(1);
 
@@ -170,7 +124,8 @@ test('create new collection -> duplicate collectionName', async t => {
   await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      name: 'newcollection'
+      name: 'newcollection',
+      schema: {}
     },
     validateStatus: status => status < 500
   });
@@ -178,13 +133,14 @@ test('create new collection -> duplicate collectionName', async t => {
   const response = await httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
-      name: 'newcollection'
+      name: 'newcollection',
+      schema: {}
     },
     validateStatus: status => status < 500
   });
 
   t.equal(response.status, 422);
-  t.deepEqual(response.data, { errors: { name: 'already taken' } });
+  t.deepEqual(response.data, { name: 'already taken' });
 
   await server.stop();
 });

@@ -10,6 +10,7 @@ const ErrorWithObject = require('error-with-object');
 
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
+const writeResponseError = require('../../modules/writeResponseError');
 
 function createTableFromSchema (collectionName, fields, connection, callback) {
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE';
@@ -39,7 +40,13 @@ function createCollectionDatabase (databasePath, databaseName, collectionConfig,
   const createdTable = righto(createTableFromSchema, collectionName, fields, dbConnection);
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable));
 
-  closedDatabase(callback);
+  closedDatabase(function (error) {
+    if (error) {
+      return callback(error)
+    }
+
+    callback(null, {...collectionConfig})
+  });
 }
 
 function createConfigFile (databasePath, databaseName, collectionConfig, callback) {
@@ -56,7 +63,7 @@ function createConfigFile (databasePath, databaseName, collectionConfig, callbac
 
     callback(new ErrorWithObject({
       statusCode: 422,
-      message: { errors: { name: 'already taken' } }
+      message: {  name: 'already taken' }
     }));
   });
 }
@@ -73,13 +80,7 @@ module.exports = config => function (request, response, params) {
 
   createdCollection(function (error, result) {
     if (error) {
-      if (error.statusCode) {
-        writeResponse(error.statusCode, error.message, response);
-      } else {
-        console.log(error);
-        writeResponse(500, 'Unexpected Server Error', response);
-      }
-      return;
+      return writeResponseError(error, response);
     }
 
     writeResponse(201, result, response);
