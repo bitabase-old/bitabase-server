@@ -53,6 +53,18 @@ function addNewColumnsToCollection (existingFields, data, dbConnection, callback
   })
 }
 
+function updateConfigFile (databasePath, databaseName, validData, callback) {
+  const configFile = righto.sync(getConfigFilePath, databasePath, databaseName, validData.id)
+  const configFolder = righto.sync(path.dirname, configFile);
+
+  const folderExists = righto(mkdirp, configFolder);
+  const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
+
+  const writtenConfigFile = righto(fs.writeFile, configFile, JSON.stringify(validData), righto.after(existingConfigFile))
+
+  writtenConfigFile(callback)
+}
+
 module.exports = appConfig => function (request, response, params) {
   const parsedData = righto(finalStream, request, JSON.parse);
   const validData = righto(validate, parsedData).get(data => ({
@@ -60,15 +72,9 @@ module.exports = appConfig => function (request, response, params) {
     id: params.collectionId
   }));
 
-  const configFile = righto.sync(getConfigFilePath, appConfig.databasePath, params.databaseName, validData.get('id'))
-  const configFolder = righto.sync(path.dirname, configFile);
+  const updatedConfigFile = righto(updateConfigFile, appConfig.databasePath, params.databaseName, validData)
 
-  const folderExists = righto(mkdirp, configFolder);
-  const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
-
-  const writtenConfigFile = righto(fs.writeFile, configFile, validData.get(JSON.stringify), righto.after(existingConfigFile))
-
-  const result = righto.mate(validData, righto.after(writtenConfigFile))
+  const result = righto.mate(validData, righto.after(updatedConfigFile))
 
   result(function (error, validData) {
     const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, `${validData.id}.db`);
