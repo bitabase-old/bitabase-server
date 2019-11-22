@@ -10,14 +10,13 @@ const finalStream = require('final-stream');
 const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
 
-function getExistingFieldNames (dbConnection, id, callback) {
-  console.log(123)
-  db.getAll(`PRAGMA table_info(${id})`, function (error, existingFields) {
+function getExistingFieldNames (id, dbConnection, callback) {
+  sqlite.getAll(`PRAGMA table_info(${id})`, dbConnection, function (error, existingFields) {
     if (error) {
       return callback(error)
     }
 
-    existingFields.map(field => field.name);
+    existingFields = existingFields.map(field => field.name);
     callback(null, existingFields);
   })
 }
@@ -26,30 +25,32 @@ function getConfigFilePath (databasePath, databaseName, collectionId) {
   return path.resolve(databasePath, `${databaseName}/${collectionId}.json`)
 }
 
-function cleanDataFromDeletedColumns (dbConnection, existingFields, validData, schema, callback) {
+function cleanDataFromDeletedColumns (existingFields, data, dbConnection, callback) {
   const fieldsToDelete = existingFields
     .filter(field => field !== 'id' && !Object.keys(data.schema).includes(field))
     .map(field => `${field}=''`);
 
   if (fieldsToDelete.length > 0) {
-    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, callback)
+    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, dbConnection, callback)
   }
 
   callback()
 }
 
-function addNewColumnsToCollection (existingFields, validData, schema, dbConnection, callback) {
-    const fieldsToAdd = Object.keys(data.schema)
-      .filter(field => field !== 'id' && !existingFields.includes(field))
-      .map(field => {
-        return sqlite.run(`ALTER TABLE ${data.id} ADD ${field} TEXT`, dbConnection );
-      });
+function addNewColumnsToCollection (existingFields, data, dbConnection, callback) {
+  const fieldsToAdd = Object.keys(data.schema)
+    .filter(field => field !== 'id' && !existingFields.includes(field))
+    .map(field => {
+      return righto(sqlite.run, `ALTER TABLE ${data.id} ADD ${field} TEXT`, dbConnection);
+    });
 
-  if (fieldsToDelete.length > 0) {
-    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, callback)
-  }
+  righto.all(fieldsToAdd)(function (error, results) {
+    if (error) {
+      return callback(error)
+    }
 
-  callback()
+    callback()
+  })
 }
 
 module.exports = appConfig => function (request, response, params) {
@@ -70,19 +71,17 @@ module.exports = appConfig => function (request, response, params) {
   const result = righto.mate(validData, righto.after(writtenConfigFile))
 
   result(function (error, validData) {
-    console.log({validData})
     const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, `${validData.id}.db`);
     const dbConnection = righto(connectWithCreate, dbFilePath);
 
     const existingFields = righto(getExistingFieldNames, validData.id, dbConnection)
 
-    const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData.get('schema'), dbConnection)
-    const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData.get('schema'), dbConnection)
+    const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData, dbConnection);
+    const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData, dbConnection);
 
     const closedDatabase = righto(sqlite.close, dbConnection, righto.after(cleanedColumns, insertedColumns))
 
     closedDatabase(function (error, data) {
-      console.log(1)
       if (error) {
         console.log(error);
         return writeResponse(500, 'Unexpected Server Error', response);  
