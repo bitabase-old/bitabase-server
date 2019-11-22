@@ -67,10 +67,14 @@ module.exports = appConfig => function (request, response, params) {
 
   const writtenConfigFile = righto(fs.writeFile, configFile, validData.get(JSON.stringify), righto.after(existingConfigFile))
 
-  resolvedDbFilePath(function (error, dbFilePath) {
+  const result = righto.mate(validData, righto.after(writtenConfigFile))
+
+  result(function (error, validData) {
+    console.log({validData})
+    const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, `${validData.id}.db`);
     const dbConnection = righto(connectWithCreate, dbFilePath);
 
-    const existingFields = righto(getExistingFieldNames, validData.get('id'), dbConnection)
+    const existingFields = righto(getExistingFieldNames, validData.id, dbConnection)
 
     const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData.get('schema'), dbConnection)
     const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData.get('schema'), dbConnection)
