@@ -1,47 +1,33 @@
+const righto = require('righto');
+const sqlite = require('sqlite-fp');
+const writeResponse = require('write-response');
+
 const getCollection = require('../../modules/getCollection');
-const { promisify } = require('util');
-const evaluate = promisify(require('../../modules/evaluate'));
+const evaluate = require('../../modules/evaluate');
 const getUser = require('../../modules/getUser');
 const connect = require('../../modules/db');
+const applyPresentersToData = require('../../modules/applyPresentersToData');
+const writeResponseError = require('../../modules/writeResponseError')
 
-function sendError (statusCode, message, res) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json'
-  });
-  res.end(JSON.stringify(message, null, 2));
-}
+module.exports = appConfig => function (request, response, params) {
+  const username = request.headers.username
+  const password = request.headers.password
 
-module.exports = appConfig => async function (req, res, params) {
-  const collection = await promisify(getCollection(appConfig))(params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
 
-  const { configFile, config } = collection;
+  const dbConnection = righto(sqlite.connect, collection.get('databaseFile'));
 
-  const db = await connect(appConfig.databasePath, configFile + '.db');
+  const user = righto(getUser(appConfig), dbConnection, username, password);
+  const record = righto(sqlite.getOne, `SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId], dbConnection);
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(record))
 
-  const user = await promisify(getUser(appConfig))(db, req.headers.username, req.headers.password);
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, righto.after(closedDatabase))
 
-  const rows = await db.all(`SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId]);
+  presentableRecord(function (error, record) {
+    if (error) {
+      return writeResponseError(error, response);
+    }
 
-  await db.close();
-
-  let data = rows[0];
-
-  if (!data) {
-    return sendError(404, {}, res);
-  }
-
-  // Presenters
-  const presenters = await Promise.all(
-    (config.presenters || []).map(async presenter => {
-      return evaluate(presenter, {
-        data, user
-      });
-    })
-  );
-
-  presenters.forEach(presenter => {
-    data = { ...data, ...presenter };
-  });
-
-  res.end(JSON.stringify(data));
+    writeResponse(200, record, response)
+  })
 };

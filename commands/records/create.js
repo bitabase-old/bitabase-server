@@ -7,6 +7,7 @@ const writeResponse = require('write-response');
 const connectWithCreate = require('../../modules/connectWithCreate');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
+const applyPresentersToData = require('../../modules/applyPresentersToData');
 
 const evaluate = require('../../modules/evaluate');
 
@@ -179,29 +180,6 @@ function mutateData (collectionConfig, data, user, callback) {
   });
 }
 
-function presentData (collectionConfig, data, user, callback) {
-  const { presenters } = collectionConfig;
-
-  const presenterFunctions = (presenters || [])
-    .map(presenter => {
-      return righto(evaluate, presenter, { data, user });
-    });
-
-  righto.all(presenterFunctions)(function (error, presenters) {
-    if (error) {
-      return callback(error);
-    }
-
-    presenters.forEach(presenter => {
-      data = { ...data, ...presenter };
-    });
-
-    data = JSON.parse(JSON.stringify(data));
-
-    callback(null, data);
-  });
-}
-
 module.exports = appConfig => async function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
@@ -217,7 +195,7 @@ module.exports = appConfig => async function (request, response, params) {
   const mutatedData = righto(mutateData, collection.get('config'), data, user, righto.after(validData));
   const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
 
-  const presentableRecord = righto(presentData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
 
   presentableRecord(function (error, result) {
     if (error) {
