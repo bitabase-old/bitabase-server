@@ -65,6 +65,14 @@ function updateConfigFile (databasePath, databaseName, validData, callback) {
   writtenConfigFile(callback)
 }
 
+function syncTableFields (validData, dbConnection, callback) {
+  const existingFields = righto(getExistingFieldNames, validData.id, dbConnection)
+  const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData, dbConnection);
+  const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData, dbConnection);
+
+  righto.mate(insertedColumns, cleanedColumns)(callback)
+}
+
 module.exports = appConfig => function (request, response, params) {
   const parsedData = righto(finalStream, request, JSON.parse);
   const validData = righto(validate, parsedData).get(data => ({
@@ -74,26 +82,18 @@ module.exports = appConfig => function (request, response, params) {
 
   const updatedConfigFile = righto(updateConfigFile, appConfig.databasePath, params.databaseName, validData)
 
-  const result = righto.mate(validData, righto.after(updatedConfigFile))
+  const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, validData.get(data => `${data.id}.db`), righto.after(updatedConfigFile));
+  const dbConnection = righto(connectWithCreate, dbFilePath);
 
-  result(function (error, validData) {
-    const dbFilePath = righto.sync(path.resolve, appConfig.databasePath, params.databaseName, `${validData.id}.db`);
-    const dbConnection = righto(connectWithCreate, dbFilePath);
+  const syncedTableFields = righto(syncTableFields, validData, dbConnection)
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(syncedTableFields))
 
-    const existingFields = righto(getExistingFieldNames, validData.id, dbConnection)
+  closedDatabase(function (error, data) {
+    if (error) {
+      console.log(error);
+      return writeResponse(500, 'Unexpected Server Error', response);  
+    }
 
-    const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData, dbConnection);
-    const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData, dbConnection);
-
-    const closedDatabase = righto(sqlite.close, dbConnection, righto.after(cleanedColumns, insertedColumns))
-
-    closedDatabase(function (error, data) {
-      if (error) {
-        console.log(error);
-        return writeResponse(500, 'Unexpected Server Error', response);  
-      }
-
-      writeResponse(200, data, response);
-    })
-  });
+    writeResponse(200, data, response);
+  })
 };
