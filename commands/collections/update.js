@@ -1,83 +1,90 @@
 const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
-
+const mkdirp = require('mkdirp');
+const righto = require('righto');
+const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 const finalStream = require('final-stream');
 
-const writeFile = promisify(fs.writeFile);
-
 const validate = require('./validate');
-const connect = require('../../modules/db');
-const ensureDirectoryExists = require('../../modules/ensureDirectoryExists');
+const connectWithCreate = require('../../modules/connectWithCreate');
 
-async function getConfig (filename) {
-  return new Promise((resolve, reject) => {
-    fs.stat(filename, (err, stat) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return resolve();
-        } else {
-          return reject(err);
-        }
-      } else {
-        resolve(stat);
-      }
-    });
-  });
+function getExistingFieldNames (dbConnection, id, callback) {
+  console.log(123)
+  db.getAll(`PRAGMA table_info(${id})`, function (error, existingFields) {
+    if (error) {
+      return callback(error)
+    }
+
+    existingFields.map(field => field.name);
+    callback(null, existingFields);
+  })
 }
 
-module.exports = config => function (request, response, params) {
-  finalStream(request, JSON.parse, async function (error, data) {
-    if (error) {
-      writeResponse(500, 'Unexpected Server Error', response);
-      return;
-    }
+function getConfigFilePath (databasePath, databaseName, collectionId) {
+  return path.resolve(databasePath, `${databaseName}/${collectionId}.json`)
+}
 
-    data.id = params.collectionId;
+function cleanDataFromDeletedColumns (dbConnection, existingFields, validData, schema, callback) {
+  const fieldsToDelete = existingFields
+    .filter(field => field !== 'id' && !Object.keys(data.schema).includes(field))
+    .map(field => `${field}=''`);
 
-    // Validation
-    const errors = validate(data);
-    if (errors) {
-      return writeResponse(422, { errors }, response);
-    }
+  if (fieldsToDelete.length > 0) {
+    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, callback)
+  }
 
-    // Configuration
-    const configFile = path.resolve(config.databasePath, `${params.databaseName}/${data.id}.json`);
+  callback()
+}
 
-    await ensureDirectoryExists(configFile, { resolve: true });
-
-    const existingConfig = await getConfig(configFile);
-    if (!existingConfig) {
-      return writeResponse(404, {}, response);
-    }
-
-    await writeFile(configFile, JSON.stringify(data));
-
-    // Alter db
-    const db = await connect(config.databasePath, `${params.databaseName}/${data.id}.db`);
-
-    const existingFields = (await db.all(`PRAGMA table_info(${data.id})`))
-      .map(field => field.name);
-
-    const fieldsToDelete = existingFields
-      .filter(field => field !== 'id' && !Object.keys(data.schema).includes(field))
-      .map(field => `${field}=''`);
-
+function addNewColumnsToCollection (existingFields, validData, schema, dbConnection, callback) {
     const fieldsToAdd = Object.keys(data.schema)
       .filter(field => field !== 'id' && !existingFields.includes(field))
       .map(field => {
-        return db.run(`ALTER TABLE ${data.id} ADD ${field} TEXT`);
+        return sqlite.run(`ALTER TABLE ${data.id} ADD ${field} TEXT`, dbConnection );
       });
-    await Promise.all(fieldsToAdd);
 
-    if (fieldsToDelete.length > 0) {
-      await db.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`);
-    }
+  if (fieldsToDelete.length > 0) {
+    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, callback)
+  }
 
-    await db.close();
+  callback()
+}
 
-    // Respond
-    writeResponse(200, data, response);
+module.exports = appConfig => function (request, response, params) {
+  const parsedData = righto(finalStream, request, JSON.parse);
+  const validData = righto(validate, parsedData).get(data => ({
+    ...data,
+    id: params.collectionId
+  }));
+
+  const configFile = righto.sync(getConfigFilePath, appConfig.databasePath, params.databaseName, validData.get('id'))
+  const configFolder = righto.sync(path.dirname, configFile);
+
+  const folderExists = righto(mkdirp, configFolder);
+  const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
+
+  const writtenConfigFile = righto(fs.writeFile, configFile, validData.get(JSON.stringify), righto.after(existingConfigFile))
+
+  resolvedDbFilePath(function (error, dbFilePath) {
+    const dbConnection = righto(connectWithCreate, dbFilePath);
+
+    const existingFields = righto(getExistingFieldNames, validData.get('id'), dbConnection)
+
+    const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, validData.get('schema'), dbConnection)
+    const insertedColumns = righto(addNewColumnsToCollection, existingFields, validData.get('schema'), dbConnection)
+
+    const closedDatabase = righto(sqlite.close, dbConnection, righto.after(cleanedColumns, insertedColumns))
+
+    closedDatabase(function (error, data) {
+      console.log(1)
+      if (error) {
+        console.log(error);
+        return writeResponse(500, 'Unexpected Server Error', response);  
+      }
+
+      writeResponse(200, data, response);
+    })
   });
 };
