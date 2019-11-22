@@ -12,7 +12,7 @@ function sendError (statusCode, message, res) {
 }
 
 module.exports = appConfig => async function (req, res, params) {
-  const collection = await getCollection(appConfig)(params.databaseName, params.collectionId);
+  const collection = await promisify(getCollection(appConfig))(params.databaseName, params.collectionId);
 
   const { configFile, config } = collection;
 

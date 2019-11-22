@@ -1,36 +1,40 @@
-const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
-const access = promisify(fs.access);
-const readFile = promisify(fs.readFile);
 
 const ErrorWithObject = require('error-with-object');
 
-module.exports = config => async function (account, collectionId) {
+module.exports = config => function (account, collectionId, callback) {
+  const notFoundErrorMessage = {
+    error: `the collection "${account}/${collectionId}" does not exist`
+  };
+
   if (account.match(/[^a-z0-9]/gi, '')) {
-    console.log('Invalid database name');
-    throw ErrorWithObject({ code: 404 });
+    return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
   }
 
   if (collectionId.match(/[^a-z0-9]/gi, '')) {
-    console.log('Invalid collection ID');
-    throw ErrorWithObject({ code: 404 });
+    return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
   }
 
   const collectionConfigFile = path.resolve(config.databasePath, `${account}/${collectionId}`);
-  try {
-    await access(collectionConfigFile + '.json', fs.constants.F_OK);
-  } catch (error) {
-    throw new ErrorWithObject({ code: 404, error });
-  }
 
-  let collectionConfig = await readFile(collectionConfigFile + '.json', 'utf8');
-  collectionConfig = JSON.parse(collectionConfig);
+  fs.readFile(collectionConfigFile + '.json', 'utf8', function (error, collectionConfig) {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        return callback(ErrorWithObject({ code: 404, message: notFoundErrorMessage }));
+      }
+      return callback(error);
+    }
 
-  return {
-    config: collectionConfig,
-    configFile: collectionConfigFile,
-    account,
-    collectionId
-  };
+    collectionConfig = JSON.parse(collectionConfig);
+
+    callback(null, {
+      config: collectionConfig,
+      configFile: collectionConfigFile,
+      definitionFile: collectionConfigFile + '.json',
+      databaseFile: collectionConfigFile + '.db',
+      account,
+      collectionId
+    });
+  });
 };

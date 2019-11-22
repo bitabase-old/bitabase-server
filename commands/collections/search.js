@@ -4,6 +4,8 @@ const righto = require('righto');
 const mkdirp = require('mkdirp');
 const writeResponse = require('write-response');
 
+const writeResponseError = require('../../modules/writeResponseError');
+
 module.exports = config => function (request, response, params) {
   const configFile = path.resolve(config.databasePath, params.databaseName);
 
@@ -12,8 +14,7 @@ module.exports = config => function (request, response, params) {
 
   collectionConfigData(function (error, collections) {
     if (error) {
-      console.log(error);
-      return writeResponse(500, 'Unexpected Server Error', response);
+      return writeResponseError(error, response);
     }
     collections = collections
       .filter(item => item.endsWith('.db'))
