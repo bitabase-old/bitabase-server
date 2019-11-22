@@ -5,7 +5,6 @@ const writeResponse = require('write-response');
 const getCollection = require('../../modules/getCollection');
 const evaluate = require('../../modules/evaluate');
 const getUser = require('../../modules/getUser');
-const connect = require('../../modules/db');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
 const writeResponseError = require('../../modules/writeResponseError')
 
