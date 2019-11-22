@@ -42,10 +42,10 @@ function createCollectionDatabase (databasePath, databaseName, collectionConfig,
 
   closedDatabase(function (error) {
     if (error) {
-      return callback(error)
+      return callback(error);
     }
 
-    callback(null, {...collectionConfig})
+    callback(null, { ...collectionConfig });
   });
 }
 
@@ -63,7 +63,7 @@ function createConfigFile (databasePath, databaseName, collectionConfig, callbac
 
     callback(new ErrorWithObject({
       statusCode: 422,
-      message: {  name: 'already taken' }
+      message: { name: 'already taken' }
     }));
   });
 }

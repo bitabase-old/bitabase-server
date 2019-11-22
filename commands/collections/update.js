@@ -84,7 +84,7 @@ module.exports = appConfig => function (request, response, params) {
 
   closedDatabase(function (error, data) {
     if (error) {
-      return writeResponseError(error, response)
+      return writeResponseError(error, response);
     }
 
     writeResponse(200, data, response);

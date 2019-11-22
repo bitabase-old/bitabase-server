@@ -4,7 +4,7 @@ const reset = require('../helpers/reset');
 const createServer = require('../../server');
 
 async function createTestCollection () {
-  return await httpRequest('/v1/databases/test/collections', {
+  return httpRequest('/v1/databases/test/collections', {
     method: 'post',
     data: {
       name: 'test',
@@ -21,7 +21,7 @@ test('collections.read: read not found collection', async t => {
 
   const server = await createServer().start();
 
-  const response = await httpRequest(`/v1/databases/test/collections/notfound`)
+  const response = await httpRequest('/v1/databases/test/collections/notfound');
   await server.stop();
 
   t.equal(response.status, 404);
@@ -36,13 +36,12 @@ test('collections.read: read existing collection', async t => {
 
   const collection = await createTestCollection();
 
-  const response = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`)
+  const response = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`);
   await server.stop();
 
   t.equal(response.status, 200);
   t.deepEqual(response.data, {
     name: 'test',
-    schema: { test: [ 'required', 'string' ] }
+    schema: { test: ['required', 'string'] }
   });
 });
-

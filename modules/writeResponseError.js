@@ -7,7 +7,6 @@ function writeResponseError (error, response) {
     console.log(error);
     writeResponse(500, 'Unexpected Server Error', response);
   }
-  return;
 }
 
-module.exports = writeResponseError
+module.exports = writeResponseError;

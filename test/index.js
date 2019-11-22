@@ -6,4 +6,3 @@ require('./collections/update.js');
 require('./collections/search.js');
 
 require('./records/search.js');
-

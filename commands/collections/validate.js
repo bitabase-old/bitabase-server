@@ -1,3 +1,5 @@
+const ErrorWithObject = require('error-with-object');
+
 const validateAlphaNumeric = require('../../modules/validations/validateAlphaNumeric');
 const validateKeyIsAlphaNumeric = require('../../modules/validations/validateKeyIsAlphaNumeric');
 const validateObjectProperties = require('../../modules/validations/validateObjectProperties');
@@ -29,10 +31,10 @@ function validate (data, callback) {
 
   if (validations.length > 0) {
     const result = Object.assign.apply(null, validations);
-    callback && callback({
+    callback && callback(new ErrorWithObject({
       statusCode: 400,
       message: result
-    });
+    }));
     return result;
   } else {
     callback && callback(null, data);

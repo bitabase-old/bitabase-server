@@ -3,18 +3,6 @@ const httpRequest = require('../helpers/httpRequest');
 const reset = require('../helpers/reset');
 const createServer = require('../../server');
 
-async function createTestCollection () {
-  await httpRequest('/v1/databases/test/collections', {
-    method: 'post',
-    data: {
-      name: 'test',
-      schema: {
-        test: ['required', 'string']
-      }
-    }
-  });
-}
-
 test('create item in collection with built in validation error', async t => {
   t.plan(2);
   await reset();
@@ -205,7 +193,6 @@ test('create item in collection with customer mutation', async t => {
 
   await server.stop();
 });
-
 
 test('create new collection', async t => {
   t.plan(1);
