@@ -1,13 +1,16 @@
 const builder = require('mongo-sql');
 
 function queryStringToSqlWhere (collectionName, url) {
-  let query = (new URL(url)).searchParams.get('query');
+  const parsedUrl = (new URL(url));
+  let query = parsedUrl.searchParams.get('query');
   query = JSON.parse(query);
 
   const usersQuery = {
     type: 'select',
     table: collectionName,
-    where: query
+    where: query,
+    limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
+    offset: parseInt(parsedUrl.searchParams.get('offset') || 0)
   };
 
   const result = builder.sql(usersQuery);

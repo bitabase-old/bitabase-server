@@ -36,7 +36,59 @@ test('list items in collection when empty', async t => {
   await server.stop();
 });
 
-test('list items in collection', async t => {
+test('list items in collection with default pagination', async t => {
+  t.plan(3);
+  await reset();
+
+  const server = await createServer().start();
+
+  await createTestCollection();
+
+  for (let i = 0; i < 100; i++) {
+    await httpRequest('/v1/databases/test/collections/test/records', {
+      method: 'post',
+      data: { test: 'testing' + i }
+    });
+  }
+
+  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+    method: 'get'
+  });
+
+  t.equal(response.status, 200);
+  t.equal(response.data.count, 10);
+  t.equal(response.data.items[0].test, 'testing0');
+
+  await server.stop();
+});
+
+test('list items in collection with custom offset', async t => {
+  t.plan(3);
+  await reset();
+
+  const server = await createServer().start();
+
+  await createTestCollection();
+
+  for (let i = 0; i < 100; i++) {
+    await httpRequest('/v1/databases/test/collections/test/records', {
+      method: 'post',
+      data: { test: 'testing' + i }
+    });
+  }
+
+  const response = await httpRequest('/v1/databases/test/collections/test/records?offset=10', {
+    method: 'get'
+  });
+
+  t.equal(response.status, 200);
+  t.equal(response.data.count, 10);
+  t.equal(response.data.items[0].test, 'testing10');
+
+  await server.stop();
+});
+
+test('list items in collection with query', async t => {
   t.plan(3);
   await reset();
 
@@ -62,6 +114,32 @@ test('list items in collection', async t => {
   t.equal(response.status, 200);
   t.equal(response.data.count, 1);
   t.equal(response.data.items[0].test, 'testing51');
+
+  await server.stop();
+});
+
+test('list items in collection with custom pagination', async t => {
+  t.plan(3);
+  await reset();
+
+  const server = await createServer().start();
+
+  await createTestCollection();
+
+  for (let i = 0; i < 100; i++) {
+    await httpRequest('/v1/databases/test/collections/test/records', {
+      method: 'post',
+      data: { test: 'testing' + i }
+    });
+  }
+
+  const response = await httpRequest('/v1/databases/test/collections/test/records?limit=100', {
+    method: 'get'
+  });
+
+  t.equal(response.status, 200);
+  t.equal(response.data.count, 100);
+  t.equal(response.data.items[20].test, 'testing20');
 
   await server.stop();
 });
