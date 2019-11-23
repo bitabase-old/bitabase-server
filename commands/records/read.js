@@ -3,14 +3,13 @@ const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 
 const getCollection = require('../../modules/getCollection');
-const evaluate = require('../../modules/evaluate');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
-const writeResponseError = require('../../modules/writeResponseError')
+const writeResponseError = require('../../modules/writeResponseError');
 
 module.exports = appConfig => function (request, response, params) {
-  const username = request.headers.username
-  const password = request.headers.password
+  const username = request.headers.username;
+  const password = request.headers.password;
 
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
 
@@ -18,15 +17,15 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
   const record = righto(sqlite.getOne, `SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId], dbConnection);
-  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(record))
+  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(record));
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, righto.after(closedDatabase))
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, righto.after(closedDatabase));
 
   presentableRecord(function (error, record) {
     if (error) {
       return writeResponseError(error, response);
     }
 
-    writeResponse(200, record, response)
-  })
+    writeResponse(200, record, response);
+  });
 };

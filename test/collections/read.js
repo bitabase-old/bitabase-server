@@ -25,7 +25,7 @@ test('collections.read: read not found collection', async t => {
   await server.stop();
 
   t.equal(response.status, 404);
-  t.deepEqual(response.data, {error: 'the collection "test/notfound" does not exist' });
+  t.deepEqual(response.data, { error: 'the collection "test/notfound" does not exist' });
 });
 
 test('collections.read: read existing collection', async t => {
