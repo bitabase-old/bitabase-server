@@ -37,7 +37,7 @@ test('list items in collection when empty', async t => {
 });
 
 test('list items in collection with default pagination', async t => {
-  t.plan(3);
+  t.plan(4);
   await reset();
 
   const server = await createServer().start();
@@ -56,14 +56,15 @@ test('list items in collection with default pagination', async t => {
   });
 
   t.equal(response.status, 200);
-  t.equal(response.data.count, 10);
+  t.equal(response.data.count, 100);
+  t.equal(response.data.items.length, 10);
   t.equal(response.data.items[0].test, 'testing0');
 
   await server.stop();
 });
 
 test('list items in collection with custom offset', async t => {
-  t.plan(3);
+  t.plan(4);
   await reset();
 
   const server = await createServer().start();
@@ -82,14 +83,15 @@ test('list items in collection with custom offset', async t => {
   });
 
   t.equal(response.status, 200);
-  t.equal(response.data.count, 10);
+  t.equal(response.data.count, 100);
+  t.equal(response.data.items.length, 10);
   t.equal(response.data.items[0].test, 'testing10');
 
   await server.stop();
 });
 
 test('list items in collection with query', async t => {
-  t.plan(3);
+  t.plan(4);
   await reset();
 
   const server = await createServer().start();
@@ -113,13 +115,14 @@ test('list items in collection with query', async t => {
 
   t.equal(response.status, 200);
   t.equal(response.data.count, 1);
+  t.equal(response.data.items.length, 1);
   t.equal(response.data.items[0].test, 'testing51');
 
   await server.stop();
 });
 
 test('list items in collection with custom pagination', async t => {
-  t.plan(3);
+  t.plan(4);
   await reset();
 
   const server = await createServer().start();
@@ -139,6 +142,7 @@ test('list items in collection with custom pagination', async t => {
 
   t.equal(response.status, 200);
   t.equal(response.data.count, 100);
+  t.equal(response.data.items.length, 100);
   t.equal(response.data.items[20].test, 'testing20');
 
   await server.stop();

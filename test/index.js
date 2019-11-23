@@ -1,4 +1,4 @@
-require('./modules/queryStringToSqlWhere.js');
+require('./modules/queryStringToSql.js');
 
 require('./authentication.js');
 
