@@ -3,7 +3,7 @@ const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 
 const writeResponseError = require('../../modules/writeResponseError');
-const queryStringToSqlWhere = require('../../modules/queryStringToSqlWhere');
+const queryStringToSql = require('../../modules/queryStringToSql');
 const getUser = require('../../modules/getUser');
 const getCollection = require('../../modules/getCollection');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
@@ -18,15 +18,19 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
 
-  const sql = queryStringToSqlWhere(params.collectionId, 'https://localhost' + request.url);
+  const recordsSql = queryStringToSql.records(params.collectionId, 'https://localhost' + request.url);
+  const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
 
-  const records = righto(sqlite.getAll, sql.query, sql.values, dbConnection);
+  const countSql = queryStringToSql.count(params.collectionId, 'https://localhost' + request.url);
+  const totalRecordCount = righto(sqlite.getOne, countSql.query, countSql.values, dbConnection);
 
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(records));
 
   const presentableRecords = righto(applyPresentersToData, collection.get('config'), records, user, righto.after(closedDatabase));
 
-  presentableRecords(function (error, records) {
+  const recordsAndCount = righto.mate(presentableRecords, totalRecordCount);
+
+  recordsAndCount(function (error, records, recordCount) {
     if (error) {
       if (error.code === 'SQLITE_ERROR' && error.message.includes('no such column')) {
         let fieldName = error.toString().split(' ');
@@ -38,7 +42,7 @@ module.exports = appConfig => function (request, response, params) {
     }
 
     writeResponse(200, {
-      count: records.length,
+      count: recordCount['count(*)'],
       items: records
     }, response);
   });
