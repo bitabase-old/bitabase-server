@@ -34,7 +34,6 @@ module.exports = appConfig => function (request, response, params) {
         fieldName = fieldName.replace(params.collectionId + '.', '');
         return writeResponse(400, { error: `query filter on none existing field [${fieldName}]` }, response);
       }
-      console.log(error);
       return writeResponseError(error, response);
     }
 

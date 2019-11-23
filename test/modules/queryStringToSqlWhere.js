@@ -12,8 +12,8 @@ test('simple query', t => {
   });
 
   const sql = queryStringToSqlWhere('users', url.toString());
-  t.equal(sql.query, 'select "users".* from "users" where "users"."firstName" = $1');
-  t.deepEqual(sql.values, ['Joe']);
+  t.equal(sql.query, 'select "users".* from "users" where "users"."firstName" = $1 limit $2');
+  t.deepEqual(sql.values, ['Joe', 10]);
 });
 
 test('danger', t => {
@@ -27,6 +27,6 @@ test('danger', t => {
   });
 
   const sql = queryStringToSqlWhere('users', url.toString());
-  t.equal(sql.query, 'select "users".* from "users" where "users"."firstName = a" = $1');
-  t.deepEqual(sql.values, ['Joe']);
+  t.equal(sql.query, 'select "users".* from "users" where "users"."firstName = a" = $1 limit $2');
+  t.deepEqual(sql.values, ['Joe', 10]);
 });
