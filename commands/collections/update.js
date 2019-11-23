@@ -1,6 +1,4 @@
 const fs = require('fs');
-const path = require('path');
-const mkdirp = require('mkdirp');
 const righto = require('righto');
 const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
@@ -20,10 +18,6 @@ function getExistingFieldNames (id, dbConnection, callback) {
     existingFields = existingFields.map(field => field.name);
     callback(null, existingFields);
   });
-}
-
-function getConfigFilePath (databasePath, databaseName, collectionId) {
-  return path.resolve(databasePath, `${databaseName}/${collectionId}.json`);
 }
 
 function cleanDataFromDeletedColumns (existingFields, data, dbConnection, callback) {
@@ -71,7 +65,7 @@ module.exports = appConfig => function (request, response, params) {
     id: params.collectionId
   }));
 
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId)
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
   const updatedConfigFile = righto(updateConfigFile, collection, data);
 
   const dbConnection = righto(connectWithCreate, collection.get('databaseFile'), righto.after(updatedConfigFile));

@@ -1,3 +1,5 @@
+require('./modules/queryStringToSqlWhere.js');
+
 require('./authentication.js');
 
 require('./collections/create.js');

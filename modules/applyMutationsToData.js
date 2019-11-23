@@ -28,4 +28,4 @@ function mutateData (collectionConfig, data, user, callback) {
   });
 }
 
-module.exports = mutateData
+module.exports = mutateData;

@@ -8,7 +8,7 @@ const writeResponseError = require('../../modules/writeResponseError');
 
 module.exports = config => function (request, response, params) {
   if (params.databaseName.match(/[^a-z0-9]/gi, '')) {
-    return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
+    writeResponse(404, 'Not Found', response);
   }
 
   const configFile = path.resolve(config.databasePath, params.databaseName);

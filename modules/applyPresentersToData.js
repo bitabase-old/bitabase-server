@@ -27,13 +27,13 @@ function presentDataSingle (collectionConfig, data, user, callback) {
 function presentData (collectionConfig, data, user, callback) {
   if (Array.isArray(data)) {
     const presenterJobs = data.map(record => {
-      return righto(presentDataSingle, collectionConfig, record, user)
-    })
+      return righto(presentDataSingle, collectionConfig, record, user);
+    });
 
-    return righto.all(presenterJobs)(callback)
+    return righto.all(presenterJobs)(callback);
   }
 
-  presentDataSingle (collectionConfig, data, user, callback)
+  presentDataSingle(collectionConfig, data, user, callback);
 }
 
-module.exports = presentData
+module.exports = presentData;
