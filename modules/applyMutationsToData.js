@@ -21,7 +21,7 @@ function mutateData (collectionConfig, data, user, callback) {
     }
 
     mutations.forEach(mutation => {
-      data = { ...data, ...mutation };
+      data = mutation;
     });
 
     callback(null, data);

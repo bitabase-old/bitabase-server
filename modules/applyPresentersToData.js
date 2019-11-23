@@ -15,7 +15,7 @@ function presentDataSingle (collectionConfig, data, user, callback) {
     }
 
     presenters.forEach(presenter => {
-      data = { ...data, ...presenter };
+      data = presenter;
     });
 
     data = JSON.parse(JSON.stringify(data));

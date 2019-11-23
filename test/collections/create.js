@@ -125,7 +125,7 @@ test('create item in collection with customer presenter', async t => {
         testToRemove: ['required', 'string']
       },
       presenters: [
-        '{testToRemove: undefined}'
+        '{...data delete testToRemove}'
       ]
     }
   });
@@ -169,7 +169,7 @@ test('create item in collection with customer mutation', async t => {
         test: ['required', 'string']
       },
       mutations: [
-        '{test: concat(data.test "-changed")}'
+        '{...data test: concat(data.test "-changed")}'
       ]
     }
   });
@@ -216,13 +216,11 @@ test('create new collection', async t => {
       },
 
       // These will be run on each record before presenting back to the client
-      presenters: [
-        '{password: data.password}'
-      ],
+      presenters: [],
 
       // These will be run on each record before saving to the database
       mutations: [
-        '{password: hashText(data.password)}'
+        '{...data password: hashText(data.password)}'
       ],
 
       // You can also set rules for each method
