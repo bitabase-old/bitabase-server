@@ -1,12 +1,12 @@
 const righto = require('righto');
 const evaluate = require('./evaluate');
 
-function presentDataSingle (collectionConfig, data, user, callback) {
+function presentDataSingle (collectionConfig, record, user, callback) {
   const { presenters } = collectionConfig;
 
   const presenterFunctions = (presenters || [])
     .map(presenter => {
-      return righto(evaluate, presenter, { data, user });
+      return righto(evaluate, presenter, { record, user });
     });
 
   righto.all(presenterFunctions)(function (error, presenters) {
@@ -15,25 +15,25 @@ function presentDataSingle (collectionConfig, data, user, callback) {
     }
 
     presenters.forEach(presenter => {
-      data = presenter;
+      record = presenter;
     });
 
-    data = JSON.parse(JSON.stringify(data));
+    record = JSON.parse(JSON.stringify(record));
 
-    callback(null, data);
+    callback(null, record);
   });
 }
 
-function presentData (collectionConfig, data, user, callback) {
-  if (Array.isArray(data)) {
-    const presenterJobs = data.map(record => {
+function presentData (collectionConfig, record, user, callback) {
+  if (Array.isArray(record)) {
+    const presenterJobs = record.map(record => {
       return righto(presentDataSingle, collectionConfig, record, user);
     });
 
     return righto.all(presenterJobs)(callback);
   }
 
-  presentDataSingle(collectionConfig, data, user, callback);
+  presentDataSingle(collectionConfig, record, user, callback);
 }
 
 module.exports = presentData;

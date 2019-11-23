@@ -14,10 +14,10 @@ function applyRulesToUsercollection () {
         groups: ['array']
       },
       mutations: [
-        '{...data password: hashText(data.password)}'
+        '{...body password: hashText(body.password)}'
       ],
       presenters: [
-        '{...data delete password}'
+        '{...record delete password}'
       ],
       rules: {
         POST: [
@@ -48,10 +48,10 @@ function createUserCollection () {
         groups: ['array']
       },
       mutations: [
-        '{...data password: hashText(data.password)}'
+        '{...body password: hashText(body.password)}'
       ],
       presenters: [
-        '{...data delete password}'
+        '{...record delete password}'
       ]
     }
   });

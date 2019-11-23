@@ -23,7 +23,12 @@ function evaluate (script, scope, callback) {
     ...scope
   };
 
-  const result = presh(script, scope);
+  let result;
+  try {
+    result = presh(script, scope);
+  } catch (error) {
+    return callback(error);
+  }
 
   if (result.error) {
     return callback(result.error);
