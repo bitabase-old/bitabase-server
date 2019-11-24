@@ -117,7 +117,7 @@ function validateDataAgainstSchema (collectionConfig, data, user, callback) {
   });
 
   // TODO: Abstract checkForUnknownFields()
-  Object.keys(data).map(async field => {
+  Object.keys(data).map(field => {
     if (!schema[field]) {
       errors[field] = errors[field] || [];
       errors[field].push('unknown field');
@@ -152,7 +152,7 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
   });
 }
 
-module.exports = appConfig => async function (request, response, params) {
+module.exports = appConfig => function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
   const account = params.databaseName;
