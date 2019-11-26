@@ -58,7 +58,7 @@ function createUserCollection () {
 }
 
 function createUser (opts = {}) {
-  return httpRequest('/v1/databases/test/collections/users/records', {
+  return httpRequest('/v1/databases/test/records/users', {
     method: 'post',
     data: {
       username: opts.username || 'testuser',
@@ -110,7 +110,7 @@ test('create user collection as user with permission', async t => {
   // Attach rules
   await applyRulesToUsercollection();
 
-  const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
+  const anotherUser = await httpRequest('/v1/databases/test/records/users', {
     headers: {
       Host: 'example.localhost:8000',
       username: 'testuser',
@@ -146,7 +146,7 @@ test('auth with invalid details', async t => {
   // Attach rules
   await applyRulesToUsercollection();
 
-  const anotherUser = await httpRequest('/v1/databases/test/collections/users/records', {
+  const anotherUser = await httpRequest('/v1/databases/test/records/users', {
     headers: {
       username: 'testuser',
       password: 'wrongpass'

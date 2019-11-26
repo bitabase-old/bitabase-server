@@ -26,25 +26,25 @@ This is a very early attempt at the bitabase rest server.
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">1.1</a></td>
     <td>POST</td>
-    <td>/v1/databases/:name/collections</td>
+    <td>/v1/databases/:databaseName/collections</td>
     <td>Create a new collection</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">1.2</a></td>
     <td>GET</td>
-    <td>/v1/databases/:name/collections</td>
+    <td>/v1/databases/:databaseName/collections</td>
     <td>List all collections</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">1.3</a></td>
     <td>GET</td>
-    <td>/v1/databases/:name/collections/:name</td>
+    <td>/v1/databases/:databaseName/collections/:collectionName</td>
     <td>Read a specific collections</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">1.4</a></td>
     <td>PUT</td>
-    <td>/v1/databases/:name/collections/:name</td>
+    <td>/v1/databases/:databaseName/collections/:collectionName</td>
     <td>Update a collection schema</td>
   </tr>
   <tr>
@@ -56,19 +56,19 @@ This is a very early attempt at the bitabase rest server.
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.1</a></td>
     <td>POST</td>
-    <td>/v1/databases/:name/collections/:name/records</td>
+    <td>/v1/databases/:databaseName/records/:collectionName</td>
     <td>Create a new record</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.2</a></td>
     <td>GET</td>
-    <td>/v1/databases/:name/collections/:name/records</td>
+    <td>/v1/databases/:databaseName/records/:collectionName</td>
     <td>Search through records</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.3</a></td>
     <td>GET</td>
-    <td>/v1/databases/:name/collections/:name/records/:id</td>
+    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
     <td>Get a specific record</td>
   </tr>
 </table>
