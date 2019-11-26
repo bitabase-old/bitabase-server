@@ -4,10 +4,22 @@ const righto = require('righto');
 const hashText = require('pbkdf2-wrapper/hashText');
 const verifyHash = require('pbkdf2-wrapper/verifyHash');
 
+function onlyAllowXHeaders (headers) {
+  return Object.keys(headers)
+    .reduce((newHeaders, headerKey) => {
+      if (headerKey.toLowerCase().startsWith('x-')) {
+        newHeaders[headerKey] = headers[headerKey];
+      }
+      return newHeaders;
+    }, {});
+}
+
 function evaluate (script, scope, callback) {
   if (!callback) {
     throw new Error('no callback provided');
   }
+
+  scope.headers = onlyAllowXHeaders(scope.headers);
 
   scope = {
     concat: (...args) => args.join(''),

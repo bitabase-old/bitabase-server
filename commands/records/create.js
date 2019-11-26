@@ -14,7 +14,7 @@ const writeResponseError = require('../../modules/writeResponseError');
 
 const uuidv4 = require('uuid').v4;
 
-function checkFieldValidation (schema, field, data, user, callback) {
+function checkFieldValidation (schema, field, data, user, headers, callback) {
   const fieldValidations = schema[field].map(checkFn => {
     if (checkFn === 'required') {
       return;
@@ -30,7 +30,8 @@ function checkFieldValidation (schema, field, data, user, callback) {
 
     return righto(evaluate, checkFn, {
       value: data[field],
-      user
+      user,
+      headers
     });
   });
 
@@ -49,10 +50,10 @@ function checkFieldValidation (schema, field, data, user, callback) {
   });
 }
 
-function checkSchemaValidations (schema, data, user, errors, callback) {
+function checkSchemaValidations (schema, data, user, headers, errors, callback) {
   const schemaValidations = Object.keys(data)
     .map(field => {
-      return righto(checkFieldValidation, schema, field, data, user);
+      return righto(checkFieldValidation, schema, field, data, user, headers);
     });
 
   righto.all(schemaValidations)(function (error, results) {
@@ -71,13 +72,13 @@ function checkSchemaValidations (schema, data, user, errors, callback) {
   });
 }
 
-function checkSchemaRules (rules, data, user, errors, callback) {
+function checkSchemaRules (rules, data, user, headers, errors, callback) {
   if (!rules || !rules.POST) {
     return callback();
   }
 
   const ruleChecks = rules.POST.map(rule => {
-    return righto(evaluate, rule, { data, user });
+    return righto(evaluate, rule, { data, user, headers });
   });
 
   righto.all(ruleChecks)(function (error, fieldResults) {
@@ -96,7 +97,7 @@ function checkSchemaRules (rules, data, user, errors, callback) {
   });
 }
 
-function validateDataAgainstSchema (collectionConfig, data, user, callback) {
+function validateDataAgainstSchema (collectionConfig, data, user, headers, callback) {
   const { schema, rules } = collectionConfig;
 
   if (!schema || schema.length === 0) {
@@ -124,9 +125,9 @@ function validateDataAgainstSchema (collectionConfig, data, user, callback) {
     }
   });
 
-  const schemaValidated = righto(checkSchemaValidations, schema, data, user, errors);
+  const schemaValidated = righto(checkSchemaValidations, schema, data, user, headers, errors);
 
-  const rulesPassed = righto(checkSchemaRules, rules, data, user, errors, righto.after(schemaValidated));
+  const rulesPassed = righto(checkSchemaRules, rules, data, user, headers, errors, righto.after(schemaValidated));
 
   rulesPassed(callback);
 }
@@ -163,11 +164,11 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user);
-  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, righto.after(validData));
+  const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user, request.headers);
+  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, request.headers, righto.after(validData));
   const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, request.headers, righto.after(insertedRecord));
 
   presentableRecord(function (error, result) {
     if (error) {
