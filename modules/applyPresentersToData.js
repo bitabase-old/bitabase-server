@@ -2,6 +2,10 @@ const righto = require('righto');
 const evaluate = require('./evaluate');
 
 function transformArraysProperty (schema, record) {
+  if (!record) {
+    return record;
+  }
+
   const schemaWithId = {
     ...schema,
     id: ['string']
@@ -11,9 +15,12 @@ function transformArraysProperty (schema, record) {
     .reduce((newRecord, currentProperty) => {
       const fieldIsArray = schemaWithId[currentProperty].includes('array');
       const fieldIsString = typeof record[currentProperty] === 'string';
+      const fieldIsNumber = schemaWithId[currentProperty].includes('number');
 
       if (fieldIsArray && fieldIsString) {
         newRecord[currentProperty] = JSON.parse(record[currentProperty]);
+      } else if (fieldIsNumber) {
+        newRecord[currentProperty] = Number(record[currentProperty]);
       } else {
         newRecord[currentProperty] = record[currentProperty];
       }
