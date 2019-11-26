@@ -22,12 +22,12 @@ function transformArraysProperty (schema, record) {
     }, {});
 }
 
-function presentDataSingle (collectionConfig, record, user, callback) {
+function presentDataSingle (collectionConfig, record, user, headers, callback) {
   const { presenters } = collectionConfig;
 
   const presenterFunctions = (presenters || [])
     .map(presenter => {
-      return righto(evaluate, presenter, { record, user });
+      return righto(evaluate, presenter, { record, user, headers });
     });
 
   righto.all(presenterFunctions)(function (error, presenters) {
@@ -44,16 +44,16 @@ function presentDataSingle (collectionConfig, record, user, callback) {
   });
 }
 
-function presentData (collectionConfig, record, user, callback) {
+function presentData (collectionConfig, record, user, headers, callback) {
   if (Array.isArray(record)) {
     const presenterJobs = record.map(record => {
-      return righto(presentDataSingle, collectionConfig, record, user);
+      return righto(presentDataSingle, collectionConfig, record, user, headers);
     });
 
     return righto.all(presenterJobs)(callback);
   }
 
-  presentDataSingle(collectionConfig, record, user, callback);
+  presentDataSingle(collectionConfig, record, user, headers, callback);
 }
 
 module.exports = presentData;

@@ -26,7 +26,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(records));
 
-  const presentableRecords = righto(applyPresentersToData, collection.get('config'), records, user, righto.after(closedDatabase));
+  const presentableRecords = righto(applyPresentersToData, collection.get('config'), records, user, request.headers, righto.after(closedDatabase));
 
   const recordsAndCount = righto.mate(presentableRecords, totalRecordCount);
 

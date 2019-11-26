@@ -20,14 +20,14 @@ test('arrays are returned as arrays', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/collections/users/records', {
+  const testInsert = await httpRequest('/v1/databases/test/records/users', {
     method: 'post',
     data: {
       test: ['something']
     }
   });
 
-  const testRead = await httpRequest(`/v1/databases/test/collections/users/records/${testInsert.data.id}`);
+  const testRead = await httpRequest(`/v1/databases/test/records/users/${testInsert.data.id}`);
 
   await server.stop();
 
