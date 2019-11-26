@@ -126,11 +126,9 @@ function validateDataAgainstSchema (collectionConfig, data, user, callback) {
 
   const schemaValidated = righto(checkSchemaValidations, schema, data, user, errors);
 
-  schemaValidated(function (error) {
-    if (error) { callback(error); }
+  const result = righto.mate(data, righto.after(schemaValidated));
 
-    callback(null, data);
-  });
+  result(callback);
 }
 
 function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
