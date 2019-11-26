@@ -90,7 +90,7 @@ test('create user collection without permission', async t => {
 
   t.equal(thirdUser.status, 201);
   t.equal(thirdUser.data.username, 'testuser2');
-  t.equal(thirdUser.data.groups, '[]');
+  t.deepEqual(thirdUser.data.groups, []);
   t.notOk(thirdUser.data.password);
   t.ok(thirdUser.data.id);
 
@@ -126,7 +126,7 @@ test('create user collection as user with permission', async t => {
 
   t.equal(anotherUser.status, 201);
   t.equal(anotherUser.data.username, 'testuser2');
-  t.equal(anotherUser.data.groups, '["manage_users"]');
+  t.deepEqual(anotherUser.data.groups, ['manage_users']);
   t.notOk(anotherUser.data.password);
   t.ok(anotherUser.data.id);
 

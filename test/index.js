@@ -8,4 +8,5 @@ require('./collections/update.js');
 require('./collections/search.js');
 
 require('./records/create.js');
+require('./records/read.js');
 require('./records/search.js');

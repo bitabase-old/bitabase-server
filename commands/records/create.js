@@ -72,7 +72,7 @@ function checkSchemaValidations (schema, data, user, headers, errors, callback) 
   });
 }
 
-function checkSchemaRules (rules, data, user, headers, errors, callback) {
+function checkSchemaRules (rules, data, user, headers, callback) {
   if (!rules || !rules.POST) {
     return callback();
   }
@@ -98,7 +98,7 @@ function checkSchemaRules (rules, data, user, headers, errors, callback) {
 }
 
 function validateDataAgainstSchema (collectionConfig, data, user, headers, callback) {
-  const { schema, rules } = collectionConfig;
+  const { schema } = collectionConfig;
 
   if (!schema || schema.length === 0) {
     return callback(new ErrorWithObject({
@@ -127,9 +127,9 @@ function validateDataAgainstSchema (collectionConfig, data, user, headers, callb
 
   const schemaValidated = righto(checkSchemaValidations, schema, data, user, headers, errors);
 
-  const rulesPassed = righto(checkSchemaRules, rules, data, user, headers, errors, righto.after(schemaValidated));
+  const result = righto.mate(data, righto.after(schemaValidated));
 
-  rulesPassed(callback);
+  result(callback);
 }
 
 function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
@@ -137,20 +137,21 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
 
   const sql = `
     INSERT INTO ${collectionId} 
-    (id, ${Object.entries(data).map(o => o[0]).join(', ')}) 
+    (id, ${Object.keys(data).join(', ')})
     VALUES 
     (?, ${Object.keys(data).fill('?').join(', ')})
   `;
 
-  const executedQuery = righto(sqlite.run, sql, [id, ...Object.entries(data).map(o => o[1])], dbConnection);
+  const preparedValues = Object.values(data)
+    .map(value => Array.isArray(value) ? JSON.stringify(value) : value);
+
+  const preparedValuesWithId = [id, ...preparedValues];
+
+  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
   const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
-  closeDbConnection(function (error, result) {
-    if (error) {
-      return callback(error);
-    }
-    callback(null, { ...data, id });
-  });
+  const result = righto.mate({ ...data, id }, righto.after(closeDbConnection));
+  result(callback);
 }
 
 module.exports = appConfig => function (request, response, params) {
@@ -164,11 +165,13 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user, request.headers);
-  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, request.headers, righto.after(validData));
-  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
+  const rulesPassed = righto(checkSchemaRules, collection.get('config').get('rules'), data, user, request.headers);
+  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, request.headers, righto.after(rulesPassed));
+  const validData = righto(validateDataAgainstSchema, collection.get('config'), mutatedData, user, request.headers);
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, request.headers, righto.after(insertedRecord));
+  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, validData, dbConnection);
+
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, request.headers);
 
   presentableRecord(function (error, result) {
     if (error) {

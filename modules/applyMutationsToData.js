@@ -2,13 +2,7 @@ const righto = require('righto');
 const evaluate = require('./evaluate');
 
 function mutateData (collectionConfig, body, user, headers, callback) {
-  const { schema, mutations } = collectionConfig;
-
-  Object.keys(body).forEach(field => {
-    if (schema[field].includes('array')) {
-      body[field] = JSON.stringify(body[field]);
-    }
-  });
+  const { mutations } = collectionConfig;
 
   const mutatorFunctions = (mutations || [])
     .map(mutation => {
