@@ -164,10 +164,10 @@ module.exports = appConfig => function (request, response, params) {
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
   const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user);
-  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, righto.after(validData));
+  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, request.headers, righto.after(validData));
   const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, request.headers, righto.after(insertedRecord));
 
   presentableRecord(function (error, result) {
     if (error) {

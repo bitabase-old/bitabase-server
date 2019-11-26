@@ -19,7 +19,7 @@ module.exports = appConfig => function (request, response, params) {
   const record = righto(sqlite.getOne, `SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId], dbConnection);
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(record));
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, righto.after(closedDatabase));
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, request.headers, righto.after(closedDatabase));
 
   presentableRecord(function (error, record) {
     if (error) {
