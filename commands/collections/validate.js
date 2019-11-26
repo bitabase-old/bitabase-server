@@ -21,7 +21,7 @@ function validate (data, callback) {
 
     validateArrayOfStrings(data, 'presenters'),
 
-    validateArrayOfStrings(data, 'mutations'),
+    validateArrayOfStrings(data, 'transforms'),
 
     validateObjectProperties(data, 'rules', [
       validateKeyInList.bind(null, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),

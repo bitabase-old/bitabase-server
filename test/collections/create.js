@@ -154,7 +154,7 @@ test('create item in collection with customer presenter', async t => {
   t.notOk(found.data.testToRemove);
 });
 
-test('create item in collection with customer mutation', async t => {
+test('create item in collection with customer transform', async t => {
   t.plan(4);
   await reset();
 
@@ -168,7 +168,7 @@ test('create item in collection with customer mutation', async t => {
       schema: {
         test: ['required', 'string']
       },
-      mutations: [
+      transforms: [
         '{...body test: concat(body.test "-changed")}'
       ]
     }
@@ -219,7 +219,7 @@ test('create new collection', async t => {
       presenters: [],
 
       // These will be run on each record before saving to the database
-      mutations: [
+      transforms: [
         '{...body password: hashText(body.password)}'
       ],
 

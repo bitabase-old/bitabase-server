@@ -8,7 +8,7 @@ const connectWithCreate = require('../../modules/connectWithCreate');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
-const applyMutationsToData = require('../../modules/applyMutationsToData');
+const applyTransformsToData = require('../../modules/applyTransformsToData');
 const evaluate = require('../../modules/evaluate');
 const writeResponseError = require('../../modules/writeResponseError');
 
@@ -166,8 +166,8 @@ module.exports = appConfig => function (request, response, params) {
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
   const rulesPassed = righto(checkSchemaRules, collection.get('config').get('rules'), data, user, request.headers);
-  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, request.headers, righto.after(rulesPassed));
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), mutatedData, user, request.headers);
+  const transformedData = righto(applyTransformsToData, collection.get('config'), data, user, request.headers, righto.after(rulesPassed));
+  const validData = righto(validateDataAgainstSchema, collection.get('config'), transformedData, user, request.headers);
 
   const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, validData, dbConnection);
 
