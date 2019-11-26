@@ -149,12 +149,8 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
   const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
   const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
-  closeDbConnection(function (error, result) {
-    if (error) {
-      return callback(error);
-    }
-    callback(null, { ...data, id });
-  });
+  const result = righto.mate({ ...data, id }, righto.after(closeDbConnection));
+  result(callback);
 }
 
 module.exports = appConfig => function (request, response, params) {
