@@ -39,8 +39,6 @@ function presentDataSingle (collectionConfig, record, user, callback) {
       record = presenter;
     });
 
-    record = JSON.parse(JSON.stringify(record));
-
     record = transformArraysProperty(collectionConfig.schema, record);
     callback(null, record);
   });
