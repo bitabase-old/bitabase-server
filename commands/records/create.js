@@ -15,6 +15,10 @@ const writeResponseError = require('../../modules/writeResponseError');
 const uuidv4 = require('uuid').v4;
 
 function checkFieldValidation (schema, field, data, user, headers, callback) {
+  if (!schema[field]) {
+    return callback(null, { [field]: 'unknown column' });
+  }
+
   const fieldValidations = schema[field].map(checkFn => {
     if (checkFn === 'required') {
       return;
@@ -66,6 +70,7 @@ function checkSchemaValidations (schema, data, user, headers, errors, callback) 
     results.forEach(validationError => {
       errors = Object.assign(errors, validationError);
     });
+
     if (Object.keys(errors).length > 0) {
       return callback(new ErrorWithObject({
         statusCode: 400,
@@ -130,7 +135,6 @@ function validateDataAgainstSchema (collectionConfig, data, user, headers, callb
   });
 
   const schemaValidated = righto(checkSchemaValidations, schema, data, user, headers, errors);
-
   const result = righto.mate(data, righto.after(schemaValidated));
 
   result(callback);

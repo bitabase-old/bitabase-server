@@ -144,6 +144,36 @@ test('transformations run before schema validations', async t => {
   await server.stop();
 });
 
+test('validation failure -> unknown column', async t => {
+  t.plan(2);
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'test',
+      schema: {
+        knownColumn: ['required', 'string']
+      }
+    }
+  });
+
+  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+    method: 'post',
+    data: {
+      knownColumn: 'test',
+      unknownColumn: 'yes'
+    }
+  });
+
+  t.equal(testInsert.status, 400);
+  t.equal(testInsert.data.unknownColumn, 'unknown column');
+
+  await server.stop();
+});
+
 test('test inbuild schema field types', async t => {
   t.plan(4);
   await reset();
