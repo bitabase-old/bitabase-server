@@ -208,3 +208,72 @@ test('test inbuild schema field types', async t => {
 
   await server.stop();
 });
+
+test('test inbuild schema field types when wrong', async t => {
+  t.plan(4);
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'test',
+      schema: {
+        testString: ['required', 'string'],
+        testNumber: ['required', 'number'],
+        testArray: ['required', 'array']
+      }
+    }
+  });
+
+  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+    method: 'post',
+    data: {
+      testString: 123,
+      testNumber: 'stirng',
+      testArray: 'notarray'
+    }
+  });
+
+  t.equal(testInsert.status, 400);
+  t.deepEqual(testInsert.data.testString, ['must be string']);
+  t.deepEqual(testInsert.data.testNumber, ['must be number']);
+  t.deepEqual(testInsert.data.testArray, ['must be array']);
+
+  await server.stop();
+});
+
+test('test inbuild schema field types when null', async t => {
+  t.plan(1);
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'test',
+      schema: {
+        always: ['string'],
+        testString: ['string'],
+        testNumber: ['number'],
+        testArray: ['array']
+      }
+    }
+  });
+
+  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+    method: 'post',
+    data: {
+      always: 'a',
+      testString: null,
+      testNumber: null,
+      testArray: null
+    }
+  });
+
+  t.equal(testInsert.status, 201);
+
+  await server.stop();
+});

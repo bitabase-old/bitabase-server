@@ -25,15 +25,15 @@ function checkFieldValidation (schema, field, data, user, headers, callback) {
     }
 
     if (checkFn === 'string') {
-      checkFn = 'getType(value) == "string" ? null : "must be string"';
+      checkFn = 'value == null || getType(value) == "string" ? null : "must be string"';
     }
 
     if (checkFn === 'number') {
-      checkFn = 'getType(value) == "number" ? null : "must be number"';
+      checkFn = 'value == null || getType(value) == "number" ? null : "must be number"';
     }
 
     if (checkFn === 'array') {
-      checkFn = 'getType(value) == "Array" ? null : "must be array"';
+      checkFn = 'value == null || getType(value) == "Array" ? null : "must be array"';
     }
 
     return righto(evaluate, checkFn, {
