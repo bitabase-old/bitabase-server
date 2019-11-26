@@ -136,16 +136,17 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
 
   const sql = `
     INSERT INTO ${collectionId} 
-    (id, ${Object.entries(data).map(o => o[0]).join(', ')}) 
+    (id, ${Object.keys(data).join(', ')})
     VALUES 
     (?, ${Object.keys(data).fill('?').join(', ')})
   `;
 
-  const values = [id, ...Object.entries(data)
-    .map(o => o[1])]
+  const preparedValues = Object.values(data)
     .map(value => Array.isArray(value) ? JSON.stringify(value) : value);
 
-  const executedQuery = righto(sqlite.run, sql, values, dbConnection);
+  const preparedValuesWithId = [id, ...preparedValues];
+
+  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
   const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
   closeDbConnection(function (error, result) {
