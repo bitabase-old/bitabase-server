@@ -1,6 +1,15 @@
 const righto = require('righto');
 const evaluate = require('./evaluate');
 
+function transformArraysProperty (schema, record) {
+  Object.keys(schema).forEach(schemaKey => {
+    if (schema[schemaKey].includes('array') && typeof record[schemaKey] === 'string') {
+      record[schemaKey] = JSON.parse(record[schemaKey]);
+    }
+  });
+  return record;
+}
+
 function presentDataSingle (collectionConfig, record, user, callback) {
   const { presenters } = collectionConfig;
 
@@ -20,6 +29,7 @@ function presentDataSingle (collectionConfig, record, user, callback) {
 
     record = JSON.parse(JSON.stringify(record));
 
+    record = transformArraysProperty(collectionConfig.schema, record);
     callback(null, record);
   });
 }

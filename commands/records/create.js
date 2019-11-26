@@ -71,7 +71,7 @@ function checkSchemaValidations (schema, data, user, errors, callback) {
   });
 }
 
-function checkSchemaRules (rules, data, user, errors, callback) {
+function checkSchemaRules (rules, data, user, callback) {
   if (!rules || !rules.POST) {
     return callback();
   }
@@ -97,7 +97,7 @@ function checkSchemaRules (rules, data, user, errors, callback) {
 }
 
 function validateDataAgainstSchema (collectionConfig, data, user, callback) {
-  const { schema, rules } = collectionConfig;
+  const { schema } = collectionConfig;
 
   if (!schema || schema.length === 0) {
     return callback(new ErrorWithObject({
@@ -126,9 +126,11 @@ function validateDataAgainstSchema (collectionConfig, data, user, callback) {
 
   const schemaValidated = righto(checkSchemaValidations, schema, data, user, errors);
 
-  const rulesPassed = righto(checkSchemaRules, rules, data, user, errors, righto.after(schemaValidated));
+  schemaValidated(function (error) {
+    if (error) { callback(error); }
 
-  rulesPassed(callback);
+    callback(null, data);
+  });
 }
 
 function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
@@ -141,7 +143,11 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
     (?, ${Object.keys(data).fill('?').join(', ')})
   `;
 
-  const executedQuery = righto(sqlite.run, sql, [id, ...Object.entries(data).map(o => o[1])], dbConnection);
+  const values = [id, ...Object.entries(data)
+    .map(o => o[1])]
+    .map(value => Array.isArray(value) ? JSON.stringify(value) : value);
+
+  const executedQuery = righto(sqlite.run, sql, values, dbConnection);
   const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
   closeDbConnection(function (error, result) {
@@ -163,11 +169,13 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), data, user);
-  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, righto.after(validData));
-  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, mutatedData, dbConnection);
+  const rulesPassed = righto(checkSchemaRules, collection.get('config').get('rules'), data, user);
+  const mutatedData = righto(applyMutationsToData, collection.get('config'), data, user, righto.after(rulesPassed));
+  const validData = righto(validateDataAgainstSchema, collection.get('config'), mutatedData, user);
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, righto.after(insertedRecord));
+  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, validData, dbConnection);
+
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user);
 
   presentableRecord(function (error, result) {
     if (error) {
