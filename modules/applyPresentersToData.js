@@ -44,7 +44,7 @@ function presentDataSingle (collectionConfig, record, user, headers, callback) {
   });
 }
 
-function presentData (collectionConfig, record, user, headers, callback) {
+function applyPresentersToData (collectionConfig, record, user, headers, callback) {
   if (Array.isArray(record)) {
     const presenterJobs = record.map(record => {
       return righto(presentDataSingle, collectionConfig, record, user, headers);
@@ -56,4 +56,4 @@ function presentData (collectionConfig, record, user, headers, callback) {
   presentDataSingle(collectionConfig, record, user, headers, callback);
 }
 
-module.exports = presentData;
+module.exports = applyPresentersToData;

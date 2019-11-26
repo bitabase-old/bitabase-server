@@ -28,6 +28,10 @@ function checkFieldValidation (schema, field, data, user, headers, callback) {
       checkFn = 'getType(value) == "string" ? null : "must be string"';
     }
 
+    if (checkFn === 'number') {
+      checkFn = 'getType(value) == "number" ? null : "must be number"';
+    }
+
     if (checkFn === 'array') {
       checkFn = 'getType(value) == "Array" ? null : "must be array"';
     }
