@@ -24,12 +24,19 @@ function evaluate (script, scope, callback) {
   scope = {
     concat: (...args) => args.join(''),
     length: (thing) => thing.length,
+    toUpperCase: (string) => string.toUpperCase(),
+    toLowerCase: (string) => string.toLowerCase(),
+    trim: (string) => string.trim(),
+    join: (args, delimiter) => args.join(delimiter || ''),
+
     getType: (item) => {
       return Array.isArray(item) ? 'Array' : typeof item;
     },
+
     includes: function (obj, key, value) {
       return !!(obj && obj[key] && obj[key].includes && obj[key].includes(value));
     },
+
     hashText: (text) => righto(hashText, text),
     verifyHash: (plain, hashed) => righto(verifyHash, plain, hashed),
     ...scope
