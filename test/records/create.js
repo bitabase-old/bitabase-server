@@ -72,3 +72,39 @@ test('headers are available in presenters', async t => {
 
   await server.stop();
 });
+
+test('only x- headers are allowed', async t => {
+  t.plan(2);
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'users',
+      schema: {
+        test: ['required', 'string']
+      },
+      presenters: [
+        '{...record test: headers["no-thanks"]}'
+      ]
+    }
+  });
+
+  const testInsert = await httpRequest('/v1/databases/test/collections/users/records', {
+    headers: {
+      'x-test-headers': 'test-header-value',
+      'no-thanks': 'no-no-no'
+    },
+    method: 'post',
+    data: {
+      test: 'yes'
+    }
+  });
+
+  t.equal(testInsert.status, 201);
+  t.notOk(testInsert.data.test);
+
+  await server.stop();
+});
