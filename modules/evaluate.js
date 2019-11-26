@@ -8,10 +8,10 @@ function onlyAllowXHeaders (headers) {
   return Object.keys(headers)
     .reduce((newHeaders, headerKey) => {
       if (headerKey.toLowerCase().startsWith('x-')) {
-        newHeaders[headerKey] = headers[headerKey]
+        newHeaders[headerKey] = headers[headerKey];
       }
-      return newHeaders
-    }, {})
+      return newHeaders;
+    }, {});
 }
 
 function evaluate (script, scope, callback) {
