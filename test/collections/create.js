@@ -25,7 +25,7 @@ test('create item in collection with built in validation error', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'post',
     data: {
       testString: 10,
@@ -62,7 +62,7 @@ test('create item in collection without using all fields', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'post',
     data: {
       testOptionalOne: 'test'
@@ -94,7 +94,7 @@ test('create item in collection with custom validation error', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'post',
     data: {
       test: 'test1'
@@ -131,7 +131,7 @@ test('create item in collection with customer presenter', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'post',
     data: {
       test: 'test1',
@@ -141,7 +141,7 @@ test('create item in collection with customer presenter', async t => {
 
   // Find record
   const found = await httpRequest(
-    `/v1/databases/test/collections/test/records/${response.data.id}`
+    `/v1/databases/test/records/test/${response.data.id}`
   );
 
   await server.stop();
@@ -175,7 +175,7 @@ test('create item in collection with customer mutation', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'post',
     data: {
       test: 'test1'
@@ -188,7 +188,7 @@ test('create item in collection with customer mutation', async t => {
 
   // Find record
   const found = await httpRequest(
-    `/v1/databases/test/collections/test/records/${response.data.id}`
+    `/v1/databases/test/records/test/${response.data.id}`
   );
 
   t.equal(found.data.test, 'test1-changed');

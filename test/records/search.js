@@ -24,7 +24,7 @@ test('list items in collection when empty', async t => {
 
   await createTestCollection();
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'get'
   });
 
@@ -45,13 +45,13 @@ test('list items in collection with default pagination', async t => {
   await createTestCollection();
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/collections/test/records', {
+    await httpRequest('/v1/databases/test/records/test', {
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records', {
+  const response = await httpRequest('/v1/databases/test/records/test', {
     method: 'get'
   });
 
@@ -72,13 +72,13 @@ test('list items in collection with custom offset', async t => {
   await createTestCollection();
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/collections/test/records', {
+    await httpRequest('/v1/databases/test/records/test', {
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records?offset=10', {
+  const response = await httpRequest('/v1/databases/test/records/test?offset=10', {
     method: 'get'
   });
 
@@ -99,7 +99,7 @@ test('list items in collection with query', async t => {
   await createTestCollection();
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/collections/test/records', {
+    await httpRequest('/v1/databases/test/records/test', {
       method: 'post',
       data: { test: 'testing' + i }
     });
@@ -109,7 +109,7 @@ test('list items in collection with query', async t => {
     query: JSON.stringify({ test: 'testing51' })
   });
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records?' + query, {
+  const response = await httpRequest('/v1/databases/test/records/test?' + query, {
     method: 'get'
   });
 
@@ -130,13 +130,13 @@ test('list items in collection with custom pagination', async t => {
   await createTestCollection();
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/collections/test/records', {
+    await httpRequest('/v1/databases/test/records/test', {
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records?limit=100', {
+  const response = await httpRequest('/v1/databases/test/records/test?limit=100', {
     method: 'get'
   });
 
@@ -157,7 +157,7 @@ test('list items in collection with invalid query', async t => {
   await createTestCollection();
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/collections/test/records', {
+    await httpRequest('/v1/databases/test/records/test', {
       method: 'post',
       data: { test: 'testing' + i }
     });
@@ -169,7 +169,7 @@ test('list items in collection with invalid query', async t => {
     })
   });
 
-  const response = await httpRequest('/v1/databases/test/collections/test/records?' + query, {
+  const response = await httpRequest('/v1/databases/test/records/test?' + query, {
     method: 'get'
   });
 
