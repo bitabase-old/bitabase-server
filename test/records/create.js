@@ -143,3 +143,38 @@ test('transformations run before schema validations', async t => {
 
   await server.stop();
 });
+
+test('test inbuild schema field types', async t => {
+  t.plan(4);
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'test',
+      schema: {
+        testString: ['required', 'string'],
+        testNumber: ['required', 'number'],
+        testArray: ['required', 'array']
+      }
+    }
+  });
+
+  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+    method: 'post',
+    data: {
+      testString: 'onetwothree',
+      testNumber: 123,
+      testArray: [1, 2, 3]
+    }
+  });
+
+  t.equal(testInsert.status, 201);
+  t.equal(testInsert.data.testString, 'onetwothree');
+  t.equal(testInsert.data.testNumber, 123);
+  t.deepEqual(testInsert.data.testArray, [1, 2, 3]);
+
+  await server.stop();
+});
