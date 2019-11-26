@@ -8,11 +8,11 @@ module.exports = config => function (databaseName, collectionName, callback) {
     error: `the collection "${databaseName}/${collectionName}" does not exist`
   };
 
-  if (databaseName.match(/[^a-z0-9]/gi, '')) {
+  if (databaseName.match(/[^a-z0-9-]/gi, '')) {
     return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
   }
 
-  if (collectionName.match(/[^a-z0-9]/gi, '')) {
+  if (collectionName.match(/[^a-z0-9-]/gi, '')) {
     return callback(new ErrorWithObject({ statusCode: 404, friendly: notFoundErrorMessage }));
   }
 

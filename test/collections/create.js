@@ -5,6 +5,31 @@ const createServer = require('../../server');
 
 test('create item in collection with built in rule failures');
 
+test('create item in collection with validation error on name', async t => {
+  t.plan(2);
+  await reset();
+
+  const server = await createServer().start();
+
+  // Create test collection with validation
+  const response = await httpRequest('/v1/databases/te-st/collections', {
+    method: 'post',
+    data: {
+      name: 'te-£$%st',
+      schema: {
+        testString: ['string']
+      }
+    }
+  });
+
+  await server.stop();
+
+  t.equal(response.status, 400);
+  t.deepEqual(response.data, {
+    name: 'can only be alpha numeric'
+  });
+});
+
 test('create item in collection with built in validation error', async t => {
   t.plan(2);
   await reset();
@@ -12,10 +37,10 @@ test('create item in collection with built in validation error', async t => {
   const server = await createServer().start();
 
   // Create test collection with validation
-  await httpRequest('/v1/databases/test/collections', {
+  await httpRequest('/v1/databases/te-st/collections', {
     method: 'post',
     data: {
-      name: 'test',
+      name: 'te-st',
       schema: {
         testString: ['string'],
         testRequired: ['required'],
@@ -25,7 +50,7 @@ test('create item in collection with built in validation error', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const response = await httpRequest('/v1/databases/te-st/records/te-st', {
     method: 'post',
     data: {
       testString: 10,

@@ -16,7 +16,7 @@ function createTableFromSchema (collectionName, fields, connection, callback) {
   const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE';
 
   sqlite.run(
-    `CREATE TABLE ${collectionName} (${idField} ${fields ? ', ' + fields : ''})`,
+    `CREATE TABLE "${collectionName}" (${idField} ${fields ? ', ' + fields : ''})`,
     connection, callback
   );
 }

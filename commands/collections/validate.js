@@ -1,7 +1,7 @@
 const ErrorWithObject = require('error-with-object');
 
-const validateAlphaNumeric = require('../../modules/validations/validateAlphaNumeric');
-const validateKeyIsAlphaNumeric = require('../../modules/validations/validateKeyIsAlphaNumeric');
+const validateAlphaNumericDash = require('../../modules/validations/validateAlphaNumericDash');
+const validateKeyIsAlphaNumericDash = require('../../modules/validations/validateKeyIsAlphaNumericDash');
 const validateObjectProperties = require('../../modules/validations/validateObjectProperties');
 const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings');
 const validateKeyInList = require('../../modules/validations/validateKeyInList');
@@ -12,10 +12,10 @@ function validate (data, callback) {
     validateRequired(data, 'name'),
     validateRequired(data, 'schema'),
 
-    validateAlphaNumeric(data, 'name'),
+    validateAlphaNumericDash(data, 'name'),
 
     validateObjectProperties(data, 'schema', [
-      validateKeyIsAlphaNumeric,
+      validateKeyIsAlphaNumericDash,
       validateArrayOfStrings
     ]),
 

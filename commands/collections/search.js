@@ -7,7 +7,7 @@ const writeResponse = require('write-response');
 const writeResponseError = require('../../modules/writeResponseError');
 
 module.exports = config => function (request, response, params) {
-  if (params.databaseName.match(/[^a-z0-9]/gi, '')) {
+  if (params.databaseName.match(/[^a-z0-9-]/gi, '')) {
     writeResponse(404, 'Not Found', response);
   }
 
