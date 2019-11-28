@@ -5,6 +5,10 @@ const ErrorWithObject = require('error-with-object');
 function applyTransducersToData (collectionConfig, scope, callback) {
   const { transducers } = collectionConfig;
 
+  if (!transducers || transducers.length === 0) {
+    return callback(null, scope.body);
+  }
+
   let alreadyRejected = false;
   const reject = (statusCode, message) => {
     !alreadyRejected && callback(new ErrorWithObject({
@@ -13,25 +17,21 @@ function applyTransducersToData (collectionConfig, scope, callback) {
     alreadyRejected = true;
   };
 
-  const transformFunctions = (transducers || [])
-    .map(transformation => {
-      return righto(evaluate, transformation, {
+  const finalBody = righto.reduce(
+    transducers,
+    function (body, next) {
+      const evaulatedResult = righto(evaluate, next, {
         ...scope,
-        reject
+        reject,
+        body
       });
-    });
 
-  righto.all(transformFunctions)(function (error, transducers) {
-    if (error) {
-      return callback(error);
-    }
+      return evaulatedResult;
+    },
+    scope.body
+  );
 
-    transducers.forEach(transformation => {
-      scope.body = transformation;
-    });
-
-    callback(null, scope.body);
-  });
+  finalBody(callback);
 }
 
 module.exports = applyTransducersToData;

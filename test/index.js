@@ -1,4 +1,5 @@
 require('./modules/queryStringToSql.js');
+require('./modules/applyTransducersToData.js');
 
 require('./authentication.js');
 
