@@ -14,25 +14,17 @@ function applyRulesToUsercollection () {
         groups: ['array']
       },
       transducers: [
-        '{...body password: hashText(body.password)}'
+        '{...body password: hashText(body.password)}',
+        `method === "post" && 
+        (
+          (length(body.groups) == 0 || 
+           includes(user "groups" "manage_users")
+          )
+        ) ? body : reject(401 "not allowed to add groups")`
       ],
       presenters: [
         '{...record delete password}'
-      ],
-      rules: {
-        POST: [
-          'length(data.groups) == 0 || includes(user "groups" "manage_users") ? "" : "not allowed to add groups"'
-        ],
-        PUT: [
-          'includes(user "groups" "manage_users")'
-        ],
-        PATCH: [
-          'includes(user "groups" "manage_users")'
-        ],
-        DELETE: [
-          '"can not delete people"'
-        ]
-      }
+      ]
     }
   });
 }
@@ -69,7 +61,7 @@ function createUser (opts = {}) {
 }
 
 test('create user collection without permission', async t => {
-  t.plan(9);
+  t.plan(8);
   await reset();
 
   const server = await createServer().start();
@@ -82,12 +74,10 @@ test('create user collection without permission', async t => {
   await applyRulesToUsercollection();
 
   const secondUser = await createUser({ username: 'testuser2', groups: ['manage_users'] });
-  t.equal(secondUser.status, 400);
-  t.deepEqual(secondUser.data, ['not allowed to add groups']);
+  t.equal(secondUser.status, 401);
+  t.deepEqual(secondUser.data, 'not allowed to add groups');
 
   const thirdUser = await createUser({ username: 'testuser2' });
-  t.equal(thirdUser.status, 201);
-
   t.equal(thirdUser.status, 201);
   t.equal(thirdUser.data.username, 'testuser2');
   t.deepEqual(thirdUser.data.groups, []);

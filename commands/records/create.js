@@ -14,7 +14,7 @@ const writeResponseError = require('../../modules/writeResponseError');
 
 const uuidv4 = require('uuid').v4;
 
-function checkFieldValidation (schema, field, data, user, headers, callback) {
+function checkFieldValidation (schema, field, scope, callback) {
   if (!schema[field]) {
     return callback(null, { [field]: 'unknown column' });
   }
@@ -37,9 +37,9 @@ function checkFieldValidation (schema, field, data, user, headers, callback) {
     }
 
     return righto(evaluate, checkFn, {
-      value: data[field],
-      user,
-      headers
+      ...scope,
+      field,
+      value: scope.body[field]
     });
   });
 
@@ -58,10 +58,14 @@ function checkFieldValidation (schema, field, data, user, headers, callback) {
   });
 }
 
-function checkSchemaValidations (schema, data, user, headers, errors, callback) {
-  const schemaValidations = Object.keys(data)
+function checkSchemaValidations (schema, scope, errors, callback) {
+  if (!schema) {
+    return callback();
+  }
+
+  const schemaValidations = Object.keys(scope.body)
     .map(field => {
-      return righto(checkFieldValidation, schema, field, data, user, headers);
+      return righto(checkFieldValidation, schema, field, scope);
     });
 
   righto.all(schemaValidations)(function (error, results) {
@@ -81,32 +85,7 @@ function checkSchemaValidations (schema, data, user, headers, errors, callback) 
   });
 }
 
-function checkSchemaRules (rules, data, user, headers, callback) {
-  if (!rules || !rules.POST) {
-    return callback();
-  }
-
-  const ruleChecks = rules.POST.map(rule => {
-    return righto(evaluate, rule, { data, user, headers });
-  });
-
-  righto.all(ruleChecks)(function (error, fieldResults) {
-    if (error) { return callback(error); }
-
-    const errors = fieldResults.filter(result => result !== '');
-
-    if (errors.length > 0) {
-      return callback(new ErrorWithObject({
-        statusCode: 400,
-        friendly: errors
-      }));
-    }
-
-    callback();
-  });
-}
-
-function validateDataAgainstSchema (collectionConfig, data, user, headers, callback) {
+function validateDataAgainstSchema (collectionConfig, scope, callback) {
   const { schema } = collectionConfig;
 
   if (!schema || schema.length === 0) {
@@ -118,47 +97,59 @@ function validateDataAgainstSchema (collectionConfig, data, user, headers, callb
 
   const errors = {};
 
-  // TODO: Abstract checkForRequiredFields()
-  Object.keys(schema).forEach(field => {
-    if (schema[field].includes('required') && !data[field]) {
-      errors[field] = errors[field] || [];
-      errors[field].push('required');
-    }
-  });
+  if (schema) {
+    // TODO: Abstract checkForRequiredFields()
+    Object.keys(schema).forEach(field => {
+      if (schema[field].includes('required') && !scope.body[field]) {
+        errors[field] = errors[field] || [];
+        errors[field].push('required');
+      }
+    });
 
-  // TODO: Abstract checkForUnknownFields()
-  Object.keys(data).map(field => {
-    if (!schema[field]) {
-      errors[field] = errors[field] || [];
-      errors[field].push('unknown field');
-    }
-  });
+    // TODO: Abstract checkForUnknownFields()
+    Object.keys(scope.body).map(field => {
+      if (!schema[field]) {
+        errors[field] = errors[field] || [];
+        errors[field].push('unknown field');
+      }
+    });
+  }
 
-  const schemaValidated = righto(checkSchemaValidations, schema, data, user, headers, errors);
-  const result = righto.mate(data, righto.after(schemaValidated));
+  const schemaValidated = righto(checkSchemaValidations, schema, scope, errors);
+  const result = righto.mate(scope.body, righto.after(schemaValidated));
 
   result(callback);
 }
 
 function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
+  if (typeof data !== 'object') {
+    return callback(new Error({
+      statusCode: 500,
+      friendly: 'Unexpected Server Error'
+    }));
+  }
+
   const id = uuidv4();
 
   const sql = `
-    INSERT INTO ${collectionId} 
-    (id, ${Object.keys(data).join(', ')})
+    INSERT INTO "_${collectionId}"
+    (id, data, date_created)
     VALUES 
-    (?, ${Object.keys(data).fill('?').join(', ')})
+    (?, ?, ?)
   `;
 
-  const preparedValues = Object.values(data)
-    .map(value => Array.isArray(value) ? JSON.stringify(value) : value);
+  const dataString = JSON.stringify({
+    ...data,
+    id
+  });
 
-  const preparedValuesWithId = [id, ...preparedValues];
+  const preparedValuesWithId = [id, dataString, Date.now()];
 
   const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
   const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
   const result = righto.mate({ ...data, id }, righto.after(closeDbConnection));
+
   result(callback);
 }
 
@@ -173,13 +164,32 @@ module.exports = appConfig => function (request, response, params) {
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
-  const rulesPassed = righto(checkSchemaRules, collection.get('config').get('rules'), data, user, request.headers);
-  const transformedData = righto(applyTransducersToData, collection.get('config'), data, user, request.headers, righto.after(rulesPassed));
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), transformedData, user, request.headers);
+  const schemaScope = righto.resolve({
+    user,
+    headers: request.headers,
+    body: data,
+    method: 'post'
+  });
+  const validData = righto(validateDataAgainstSchema, collection.get('config'), schemaScope);
 
-  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, validData, dbConnection);
+  const transducerScope = righto.resolve({
+    user,
+    headers: request.headers,
+    body: validData,
+    method: 'post'
+  });
+  const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), insertedRecord, user, request.headers);
+  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, transducedData, dbConnection);
+
+  const presenterScope = righto.resolve({
+    record: insertedRecord,
+    user,
+    headers: request.headers,
+    method: 'post'
+  });
+
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);
 
   presentableRecord(function (error, result) {
     if (error) {

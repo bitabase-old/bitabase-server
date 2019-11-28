@@ -109,41 +109,6 @@ test('only x- headers are allowed', async t => {
   await server.stop();
 });
 
-test('transformations run before schema validations', async t => {
-  t.plan(2);
-  await reset();
-
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
-    method: 'post',
-    data: {
-      name: 'users',
-      schema: {
-        test: ['required', 'string']
-      },
-      transducers: [
-        '{...body test: "text"}'
-      ]
-    }
-  });
-
-  const testInsert = await httpRequest('/v1/databases/test/records/users', {
-    headers: {
-      'x-test-headers': 'test-header-value'
-    },
-    method: 'post',
-    data: {
-      test: 1
-    }
-  });
-
-  t.equal(testInsert.status, 201);
-  t.equal(testInsert.data.test, 'text');
-
-  await server.stop();
-});
-
 test('validation failure -> unknown column', async t => {
   t.plan(2);
   await reset();

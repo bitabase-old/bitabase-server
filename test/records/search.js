@@ -147,35 +147,3 @@ test('list items in collection with custom pagination', async t => {
 
   await server.stop();
 });
-
-test('list items in collection with invalid query', async t => {
-  t.plan(2);
-  await reset();
-
-  const server = await createServer().start();
-
-  await createTestCollection();
-
-  for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/records/test', {
-      method: 'post',
-      data: { test: 'testing' + i }
-    });
-  }
-
-  const query = querystring.stringify({
-    query: JSON.stringify({
-      firstName: 'Joe'
-    })
-  });
-
-  const response = await httpRequest('/v1/databases/test/records/test?' + query, {
-    method: 'get'
-  });
-
-  t.equal(response.status, 400);
-
-  t.deepEqual(response.data, { error: 'query filter on none existing field [firstName]' });
-
-  await server.stop();
-});

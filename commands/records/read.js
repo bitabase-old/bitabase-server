@@ -16,10 +16,19 @@ module.exports = appConfig => function (request, response, params) {
   const dbConnection = righto(sqlite.connect, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
-  const record = righto(sqlite.getOne, `SELECT * FROM ${params.collectionId} WHERE id = ?`, [params.recordId], dbConnection);
+  const record = righto(sqlite.getOne, `SELECT data FROM "_${params.collectionId}" WHERE id = ?`, [params.recordId], dbConnection);
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(record));
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), record, user, request.headers, righto.after(closedDatabase));
+  const recordData = record.get(record => JSON.parse(record.data));
+
+  const presenterScope = righto.resolve({
+    record: recordData,
+    user,
+    headers: request.headers,
+    method: 'read'
+  });
+
+  const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(closedDatabase));
 
   presentableRecord(function (error, record) {
     if (error) {
