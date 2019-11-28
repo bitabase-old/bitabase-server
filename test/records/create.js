@@ -16,7 +16,7 @@ test('headers are available in transformations', async t => {
       schema: {
         test: ['required', 'string']
       },
-      transforms: [
+      transducers: [
         '{...body test: headers["x-test-headers"]}'
       ]
     }
@@ -122,7 +122,7 @@ test('transformations run before schema validations', async t => {
       schema: {
         test: ['required', 'string']
       },
-      transforms: [
+      transducers: [
         '{...body test: "text"}'
       ]
     }

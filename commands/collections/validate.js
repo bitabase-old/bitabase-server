@@ -10,7 +10,6 @@ const validateRequired = require('../../modules/validations/validateRequired');
 function validate (data, callback) {
   const validations = [
     validateRequired(data, 'name'),
-    validateRequired(data, 'schema'),
 
     validateAlphaNumericDash(data, 'name'),
 
@@ -21,12 +20,7 @@ function validate (data, callback) {
 
     validateArrayOfStrings(data, 'presenters'),
 
-    validateArrayOfStrings(data, 'transforms'),
-
-    validateObjectProperties(data, 'rules', [
-      validateKeyInList.bind(null, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-      validateArrayOfStrings
-    ])
+    validateArrayOfStrings(data, 'transducers')
   ].filter(item => !!item);
 
   if (validations.length > 0) {

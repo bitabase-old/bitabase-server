@@ -13,7 +13,7 @@ function applyRulesToUsercollection () {
         password: ['required', 'string'],
         groups: ['array']
       },
-      transforms: [
+      transducers: [
         '{...body password: hashText(body.password)}'
       ],
       presenters: [
@@ -47,7 +47,7 @@ function createUserCollection () {
         password: ['required', 'string'],
         groups: ['array']
       },
-      transforms: [
+      transducers: [
         '{...body password: hashText(body.password)}'
       ],
       presenters: [

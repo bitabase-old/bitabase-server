@@ -15,27 +15,6 @@ async function createTestCollection () {
   });
 }
 
-test('collections.update: no schema returns validate error', async t => {
-  t.plan(2);
-  await reset();
-
-  const server = await createServer().start();
-
-  const collection = await createTestCollection();
-
-  const response = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`, {
-    method: 'put',
-    data: {
-      name: 'test'
-    }
-  });
-
-  await server.stop();
-
-  t.equal(response.status, 400);
-  t.deepEqual(response.data, { schema: 'required' });
-});
-
 test('collections.update: update a collection', async t => {
   t.plan(2);
 

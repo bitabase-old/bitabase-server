@@ -193,7 +193,7 @@ test('create item in collection with customer transform', async t => {
       schema: {
         test: ['required', 'string']
       },
-      transforms: [
+      transducers: [
         '{...body test: concat(body.test "-changed")}'
       ]
     }
@@ -244,26 +244,9 @@ test('create new collection', async t => {
       presenters: [],
 
       // These will be run on each record before saving to the database
-      transforms: [
+      transducers: [
         '{...body password: hashText(body.password)}'
-      ],
-
-      // You can also set rules for each method
-      rules: {
-        POST: [
-          // Allow anyone to register, but only admins to add permissions
-          'length(data.permissions) === 0 || includes("admin" user.permissions)'
-        ],
-        PUT: [
-          'includes("admin" user.permissions)'
-        ],
-        PATCH: [
-          'includes("admin" user.permissions)'
-        ],
-        DELETE: [
-          '"can not delete people"'
-        ]
-      }
+      ]
     },
     validateStatus: status => status < 500
   });
