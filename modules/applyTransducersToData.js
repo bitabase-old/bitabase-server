@@ -20,13 +20,11 @@ function applyTransducersToData (collectionConfig, scope, callback) {
   const finalBody = righto.reduce(
     transducers,
     function (body, next) {
-      const evaulatedResult = righto(evaluate, next, {
+      return righto(evaluate, next, {
         ...scope,
         reject,
         body
-      });
-
-      return evaulatedResult;
+      }).get(result => typeof result === 'object' ? result : righto.fail('Must return an object'));
     },
     scope.body
   );
