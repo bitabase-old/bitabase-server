@@ -2,7 +2,7 @@ const righto = require('righto');
 const evaluate = require('./evaluate');
 
 function transformArraysProperty (schema, record) {
-  if (!record) {
+  if (!schema) {
     return record;
   }
 
@@ -50,6 +50,7 @@ function presentDataSingle (collectionConfig, scope, record, callback) {
     });
 
     record = transformArraysProperty(collectionConfig.schema, record);
+
     callback(null, record);
   });
 }

@@ -88,11 +88,8 @@ function checkSchemaValidations (schema, scope, errors, callback) {
 function validateDataAgainstSchema (collectionConfig, scope, callback) {
   const { schema } = collectionConfig;
 
-  if (!schema || schema.length === 0) {
-    return callback(new ErrorWithObject({
-      statusCode: 400,
-      friendly: 'collection has no fields so you can not post'
-    }));
+  if (!schema) {
+    return callback(null, scope.body);
   }
 
   const errors = {};
