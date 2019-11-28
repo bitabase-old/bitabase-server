@@ -74,6 +74,28 @@ function checkSchemaValidations (schema, scope, errors, callback) {
   });
 }
 
+function checkForRequiredFields (schema, body) {
+  const errors = {};
+  Object.keys(schema).forEach(field => {
+    if (schema[field].includes('required') && !body[field]) {
+      errors[field] = errors[field] || [];
+      errors[field].push('required');
+    }
+  });
+  return errors;
+}
+
+function checkForUnknownFields (schema, body) {
+  const errors = {};
+  Object.keys(body).map(field => {
+    if (!schema[field]) {
+      errors[field] = errors[field] || [];
+      errors[field].push('unknown field');
+    }
+  });
+  return errors;
+}
+
 function validateDataAgainstSchema (collectionConfig, scope, callback) {
   if (!collectionConfig) {
     throw new Error('validateDataAgainstSchema must be called with a collectionConfig');
@@ -85,25 +107,10 @@ function validateDataAgainstSchema (collectionConfig, scope, callback) {
     return callback(null, scope.body);
   }
 
-  const errors = {};
-
-  if (schema) {
-    // TODO: Abstract checkForRequiredFields()
-    Object.keys(schema).forEach(field => {
-      if (schema[field].includes('required') && !scope.body[field]) {
-        errors[field] = errors[field] || [];
-        errors[field].push('required');
-      }
-    });
-
-    // TODO: Abstract checkForUnknownFields()
-    Object.keys(scope.body).map(field => {
-      if (!schema[field]) {
-        errors[field] = errors[field] || [];
-        errors[field].push('unknown field');
-      }
-    });
-  }
+  const errors = {
+    ...checkForUnknownFields(schema, scope.body),
+    ...checkForRequiredFields(schema, scope.body)
+  };
 
   const schemaValidated = righto(checkSchemaValidations, schema, scope, errors);
   const result = righto.mate(scope.body, righto.after(schemaValidated));
