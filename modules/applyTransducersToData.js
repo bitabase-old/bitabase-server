@@ -10,9 +10,9 @@ function applyTransducersToData (collectionConfig, scope, callback) {
   }
 
   const reject = (statusCode, message, callback) => {
-    callback(new ErrorWithObject({
+    return righto.fail({
       statusCode, friendly: message
-    }))
+    })
   }
 
   const finalBody = righto.reduce(
@@ -23,7 +23,6 @@ function applyTransducersToData (collectionConfig, scope, callback) {
         reject,
         body
       }).get(result => {
-        console.log(next, result)
         return typeof result === 'object' ? result : righto.fail('Must return an object')
       });
     },
