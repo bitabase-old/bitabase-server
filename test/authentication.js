@@ -15,9 +15,9 @@ function applyRulesToUsercollection () {
       },
       transducers: [
         '{...body password: hashText(body.password)}',
-        `method === "post" && 
+        `method === "post" &&
         (
-          (length(body.groups) == 0 || 
+          (length(body.groups) == 0 ||
            includes(user "groups" "manage_users")
           )
         ) ? body : reject(401 "not allowed to add groups")`

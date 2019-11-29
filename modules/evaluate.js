@@ -55,7 +55,7 @@ function evaluate (script, scope, callback) {
 
   result.value(function (error, value) {
     if (error) {
-      return callback(result.error);
+      return callback(error);
     }
 
     callback(null, value);
