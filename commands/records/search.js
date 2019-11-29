@@ -2,6 +2,7 @@ const righto = require('righto');
 const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 
+const { getConnection } = require('../../modules/cachableSqlite');
 const writeResponseError = require('../../modules/writeResponseError');
 const queryStringToSql = require('../../modules/queryStringToSql');
 const getUser = require('../../modules/getUser');
@@ -14,7 +15,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
 
-  const dbConnection = righto(sqlite.connect, collection.get('databaseFile'));
+  const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
 
@@ -26,15 +27,13 @@ module.exports = appConfig => function (request, response, params) {
   const countSql = queryStringToSql.count(params.collectionId, 'https://localhost' + request.url);
   const totalRecordCount = righto(sqlite.getOne, countSql.query, countSql.values, dbConnection);
 
-  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(records));
-
   const presenterScope = righto.resolve({
     record: recordsData,
     user,
     headers: request.headers,
     method: 'get'
   });
-  const presentableRecords = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(closedDatabase));
+  const presentableRecords = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(records));
 
   const recordsAndCount = righto.mate(presentableRecords, totalRecordCount);
 

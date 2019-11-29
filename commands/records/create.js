@@ -3,7 +3,7 @@ const sqlite = require('sqlite-fp');
 const finalStream = require('final-stream');
 const writeResponse = require('write-response');
 
-const connectWithCreate = require('../../modules/connectWithCreate');
+const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
@@ -38,9 +38,8 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
   const preparedValuesWithId = [id, dataString, Date.now()];
 
   const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
-  const closeDbConnection = righto(sqlite.close, dbConnection, righto.after(executedQuery));
 
-  const result = righto.mate({ ...data, id }, righto.after(closeDbConnection));
+  const result = righto.mate({ ...data, id }, righto.after(executedQuery));
 
   result(callback);
 }
@@ -52,7 +51,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const collection = righto(getCollection(appConfig), account, params.collectionId);
 
-  const dbConnection = righto(connectWithCreate, collection.get('databaseFile'));
+  const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 

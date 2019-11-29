@@ -9,7 +9,7 @@ const writeResponse = require('write-response');
 const ErrorWithObject = require('error-with-object');
 
 const validate = require('./validate');
-const connectWithCreate = require('../../modules/connectWithCreate');
+const { getConnection } = require('../../modules/cachableSqlite');
 const writeResponseError = require('../../modules/writeResponseError');
 
 function createTableFromSchema (collectionName, connection, callback) {
@@ -27,11 +27,10 @@ function createCollectionDatabase (databasePath, databaseName, collectionConfig,
   const collectionName = collectionConfig.name;
   const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`);
 
-  const dbConnection = righto(connectWithCreate, filePath);
+  const dbConnection = righto(getConnection, filePath);
   const createdTable = righto(createTableFromSchema, collectionName, dbConnection);
-  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable));
 
-  closedDatabase(function (error) {
+  createdTable(function (error) {
     if (error) {
       return callback(error);
     }
