@@ -1,25 +1,35 @@
 const righto = require('righto');
 const evaluate = require('./evaluate');
+const ErrorWithObject = require('error-with-object');
 
-function applyTransducersToData (collectionConfig, body, user, headers, callback) {
+function applyTransducersToData (collectionConfig, scope, callback) {
   const { transducers } = collectionConfig;
 
-  const transformFunctions = (transducers || [])
-    .map(transformation => {
-      return righto(evaluate, transformation, { body, user, headers });
-    });
+  if (!transducers || transducers.length === 0) {
+    return callback(null, scope.body);
+  }
 
-  righto.all(transformFunctions)(function (error, transducers) {
-    if (error) {
-      return callback(error);
-    }
+  let alreadyRejected = false;
+  const reject = (statusCode, message) => {
+    !alreadyRejected && callback(new ErrorWithObject({
+      statusCode, friendly: message
+    }));
+    alreadyRejected = true;
+  };
 
-    transducers.forEach(transformation => {
-      body = transformation;
-    });
+  const finalBody = righto.reduce(
+    transducers,
+    function (body, next) {
+      return righto(evaluate, next, {
+        ...scope,
+        reject,
+        body
+      }).get(result => typeof result === 'object' ? result : righto.fail('Must return an object'));
+    },
+    scope.body
+  );
 
-    callback(null, body);
-  });
+  finalBody(callback);
 }
 
 module.exports = applyTransducersToData;

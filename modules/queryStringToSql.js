@@ -1,5 +1,16 @@
 const builder = require('mongo-sql');
 
+function jsonifySqlQuery (sql, matchFieldNames) {
+  const built = builder.sql(sql);
+
+  built.query = built.query
+    .replace(matchFieldNames, function (_, fieldName) {
+      return `json_extract(data, "$.${fieldName}")`;
+    });
+
+  return built;
+}
+
 function queryStringToSqlRecords (collectionName, url) {
   const parsedUrl = (new URL(url));
   let query = parsedUrl.searchParams.get('query');
@@ -7,18 +18,17 @@ function queryStringToSqlRecords (collectionName, url) {
 
   const usersQuery = {
     type: 'select',
-    table: collectionName,
+    table: `_${collectionName}`,
     where: query,
     limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
     offset: parseInt(parsedUrl.searchParams.get('offset') || 0)
   };
 
-  const result = builder.sql(usersQuery);
+  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*)"`, 'g');
 
-  return {
-    query: result.toString(),
-    values: result.values
-  };
+  const result = jsonifySqlQuery(usersQuery, matchFieldNames);
+
+  return result;
 }
 
 function queryStringToSqlCount (collectionName, url) {
@@ -29,16 +39,15 @@ function queryStringToSqlCount (collectionName, url) {
   const usersQuery = {
     type: 'select',
     columns: ['count(*)'],
-    table: collectionName,
+    table: `_${collectionName}`,
     where: query
   };
 
-  const result = builder.sql(usersQuery);
+  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*)"`, 'g');
 
-  return {
-    query: result.toString(),
-    values: result.values
-  };
+  const result = jsonifySqlQuery(usersQuery, matchFieldNames);
+
+  return result;
 }
 
 module.exports = {

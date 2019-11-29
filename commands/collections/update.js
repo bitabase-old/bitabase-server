@@ -1,46 +1,11 @@
 const fs = require('fs');
 const righto = require('righto');
-const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 const finalStream = require('final-stream');
 
 const validate = require('./validate');
-const connectWithCreate = require('../../modules/connectWithCreate');
 const writeResponseError = require('../../modules/writeResponseError');
 const getCollection = require('../../modules/getCollection');
-
-function getExistingFieldNames (id, dbConnection, callback) {
-  sqlite.getAll(`PRAGMA table_info(${id})`, dbConnection, function (error, existingFields) {
-    if (error) {
-      return callback(error);
-    }
-
-    existingFields = existingFields.map(field => field.name);
-    callback(null, existingFields);
-  });
-}
-
-function cleanDataFromDeletedColumns (existingFields, data, dbConnection, callback) {
-  const fieldsToDelete = existingFields
-    .filter(field => field !== 'id' && !Object.keys(data.schema).includes(field))
-    .map(field => `${field}=''`);
-
-  if (fieldsToDelete.length > 0) {
-    return sqlite.run(`UPDATE ${data.id} SET ${fieldsToDelete.join(', ')}`, dbConnection, callback);
-  }
-
-  callback();
-}
-
-function addNewColumnsToCollection (existingFields, data, dbConnection, callback) {
-  const fieldsToAdd = Object.keys(data.schema)
-    .filter(field => field !== 'id' && !existingFields.includes(field))
-    .map(field => {
-      return righto(sqlite.run, `ALTER TABLE ${data.id} ADD ${field} TEXT`, dbConnection);
-    });
-
-  righto.all(fieldsToAdd)(callback);
-}
 
 function updateConfigFile (collection, data, callback) {
   const writtenConfigFile = righto(
@@ -48,14 +13,6 @@ function updateConfigFile (collection, data, callback) {
   );
 
   writtenConfigFile(callback);
-}
-
-function syncTableFields (data, dbConnection, callback) {
-  const existingFields = righto(getExistingFieldNames, data.id, dbConnection);
-  const cleanedColumns = righto(cleanDataFromDeletedColumns, existingFields, data, dbConnection);
-  const insertedColumns = righto(addNewColumnsToCollection, existingFields, data, dbConnection);
-
-  righto.mate(insertedColumns, cleanedColumns)(callback);
 }
 
 module.exports = appConfig => function (request, response, params) {
@@ -68,12 +25,9 @@ module.exports = appConfig => function (request, response, params) {
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
   const updatedConfigFile = righto(updateConfigFile, collection, data);
 
-  const dbConnection = righto(connectWithCreate, collection.get('databaseFile'), righto.after(updatedConfigFile));
+  const result = righto.mate(data, righto.after(updatedConfigFile));
 
-  const syncedTableFields = righto(syncTableFields, data, dbConnection);
-  const closedDatabase = righto(sqlite.close, dbConnection, righto.after(syncedTableFields));
-
-  closedDatabase(function (error, data) {
+  result(function (error, data) {
     if (error) {
       return writeResponseError(error, response);
     }

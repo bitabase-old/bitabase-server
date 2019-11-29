@@ -21,23 +21,25 @@ module.exports = appConfig => function (request, response, params) {
   const recordsSql = queryStringToSql.records(params.collectionId, 'https://localhost' + request.url);
   const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
 
+  const recordsData = records.get(records => records.map(record => JSON.parse(record.data)));
+
   const countSql = queryStringToSql.count(params.collectionId, 'https://localhost' + request.url);
   const totalRecordCount = righto(sqlite.getOne, countSql.query, countSql.values, dbConnection);
 
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(records));
 
-  const presentableRecords = righto(applyPresentersToData, collection.get('config'), records, user, request.headers, righto.after(closedDatabase));
+  const presenterScope = righto.resolve({
+    record: recordsData,
+    user,
+    headers: request.headers,
+    method: 'get'
+  });
+  const presentableRecords = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(closedDatabase));
 
   const recordsAndCount = righto.mate(presentableRecords, totalRecordCount);
 
   recordsAndCount(function (error, records, recordCount) {
     if (error) {
-      if (error.code === 'SQLITE_ERROR' && error.message.includes('no such column')) {
-        let fieldName = error.toString().split(' ');
-        fieldName = fieldName[fieldName.length - 1];
-        fieldName = fieldName.replace(params.collectionId + '.', '');
-        return writeResponse(400, { error: `query filter on none existing field [${fieldName}]` }, response);
-      }
       return writeResponseError(error, response);
     }
 

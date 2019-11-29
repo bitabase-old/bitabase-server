@@ -4,7 +4,6 @@ const validateAlphaNumericDash = require('../../modules/validations/validateAlph
 const validateKeyIsAlphaNumericDash = require('../../modules/validations/validateKeyIsAlphaNumericDash');
 const validateObjectProperties = require('../../modules/validations/validateObjectProperties');
 const validateArrayOfStrings = require('../../modules/validations/validateArrayOfStrings');
-const validateKeyInList = require('../../modules/validations/validateKeyInList');
 const validateRequired = require('../../modules/validations/validateRequired');
 
 function validate (data, callback) {

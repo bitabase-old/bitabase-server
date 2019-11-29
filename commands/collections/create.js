@@ -12,32 +12,23 @@ const validate = require('./validate');
 const connectWithCreate = require('../../modules/connectWithCreate');
 const writeResponseError = require('../../modules/writeResponseError');
 
-function createTableFromSchema (collectionName, fields, connection, callback) {
-  const idField = 'id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE';
-
+function createTableFromSchema (collectionName, connection, callback) {
   sqlite.run(
-    `CREATE TABLE "${collectionName}" (${idField} ${fields ? ', ' + fields : ''})`,
+    `CREATE TABLE "_${collectionName}" (
+      id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE,
+      data TEXT,
+      date_created NUMBER
+    )`,
     connection, callback
   );
-}
-
-function createFieldsFromSchema (schema, callback) {
-  const fields = Object.keys(schema || [])
-    .map(fieldKey => {
-      return `${fieldKey} TEXT`;
-    })
-    .join(', ');
-
-  callback(null, fields);
 }
 
 function createCollectionDatabase (databasePath, databaseName, collectionConfig, callback) {
   const collectionName = collectionConfig.name;
   const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`);
-  const fields = righto(createFieldsFromSchema, collectionConfig.schema);
 
   const dbConnection = righto(connectWithCreate, filePath);
-  const createdTable = righto(createTableFromSchema, collectionName, fields, dbConnection);
+  const createdTable = righto(createTableFromSchema, collectionName, dbConnection);
   const closedDatabase = righto(sqlite.close, dbConnection, righto.after(createdTable));
 
   closedDatabase(function (error) {

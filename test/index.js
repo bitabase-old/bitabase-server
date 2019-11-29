@@ -1,12 +1,14 @@
-require('./modules/queryStringToSql.js');
+require('./modules/queryStringToSql');
+require('./modules/validateDataAgainstSchema');
+require('./modules/applyTransducersToData');
 
-require('./authentication.js');
+require('./authentication');
 
-require('./collections/create.js');
-require('./collections/read.js');
-require('./collections/update.js');
-require('./collections/search.js');
+require('./collections/create');
+require('./collections/read');
+require('./collections/update');
+require('./collections/search');
 
-require('./records/create.js');
-require('./records/read.js');
-require('./records/search.js');
+require('./records/create');
+require('./records/read');
+require('./records/search');

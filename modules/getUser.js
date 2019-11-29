@@ -6,7 +6,7 @@ const ErrorWithObject = require('error-with-object');
 const returnUserResult = (password, callback) => (error, user) => {
   if (error) { return callback(error); }
 
-  user = user[0];
+  user = JSON.parse(user[0].data);
 
   verifyHash(password, user.password, function (error, passwordMatched) {
     if (error) {
@@ -24,7 +24,7 @@ const returnUserResult = (password, callback) => (error, user) => {
 module.exports = config => function (db, username, password, callback) {
   // Get user if logged in
   if (username && password) {
-    sqlite.getAll('SELECT * FROM users WHERE username = ?', [username], db, returnUserResult(password, callback));
+    sqlite.getAll('SELECT * FROM "_users" WHERE json_extract(data, "$.username") = ?', [username], db, returnUserResult(password, callback));
   } else {
     callback(null, null);
   }
