@@ -3,6 +3,31 @@ const httpRequest = require('../helpers/httpRequest');
 const reset = require('../helpers/reset');
 const createServer = require('../../server');
 
+test('records read not found', async t => {
+  t.plan(2);
+
+  await reset();
+
+  const server = await createServer().start();
+
+  await httpRequest('/v1/databases/test/collections', {
+    method: 'post',
+    data: {
+      name: 'users',
+      schema: {
+        test: ['required', 'array']
+      }
+    }
+  });
+
+  const testRead = await httpRequest('/v1/databases/test/records/users/nothere');
+
+  await server.stop();
+
+  t.equal(testRead.status, 404);
+  t.deepEqual(testRead.data, { error: 'Not Found' });
+});
+
 test('arrays are returned as arrays', async t => {
   t.plan(4);
 

@@ -1,10 +1,6 @@
 const axios = require('axios');
-const https = require('https');
 
 module.exports = axios.create({
   baseURL: 'http://localhost:8000/',
-  validateStatus: status => status < 500,
-  httpsAgent: new https.Agent({
-    rejectUnauthorized: false
-  })
+  validateStatus: status => status < 500
 });

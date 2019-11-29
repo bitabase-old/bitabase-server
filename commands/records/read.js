@@ -20,7 +20,7 @@ module.exports = appConfig => function (request, response, params) {
   const record = righto(sqlite.getOne, `SELECT data FROM "_${params.collectionId}" WHERE id = ?`, [params.recordId], dbConnection);
   const recordData = record.get(record => {
     return record ? JSON.parse(record.data) : righto.fail({
-      statusCode: 404, friendly: 'Not Found'
+      statusCode: 404, friendly: { error: 'Not Found' }
     });
   });
 

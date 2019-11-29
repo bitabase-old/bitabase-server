@@ -25,6 +25,7 @@ function getConnection (databaseFile, callback) {
   }
 
   connectWithCreate(databaseFile, function (error, connection) {
+    connection.timeOpened = Date.now();
     upClearTimer(databaseFile);
     if (connection) {
       cachedConnections.set(databaseFile, connection);

@@ -1,6 +1,7 @@
 require('./modules/queryStringToSql');
 require('./modules/validateDataAgainstSchema');
 require('./modules/applyTransducersToData');
+require('./modules/cachableSqlite');
 
 require('./authentication');
 

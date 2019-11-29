@@ -4,7 +4,7 @@ const config = {
   dev: {
     port: 8000,
     databasePath: path.resolve(__dirname, '../data'),
-    databaseKeepAlive: 2000
+    databaseKeepAlive: 1000
   },
 
   production: {
