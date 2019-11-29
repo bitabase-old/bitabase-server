@@ -9,11 +9,13 @@ function applyTransducersToData (collectionConfig, scope, callback) {
     return callback(null, scope.body);
   }
 
-  const reject = (statusCode, message, callback) => {
+  const reject = (statusCode, message) => {
     return righto.fail({
       statusCode, friendly: message
     })
   }
+
+  debugger
 
   const finalBody = righto.reduce(
     transducers,
