@@ -15,8 +15,6 @@ function applyTransducersToData (collectionConfig, scope, callback) {
     })
   }
 
-  debugger
-
   const finalBody = righto.reduce(
     transducers,
     function (body, next) {
