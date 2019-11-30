@@ -19,6 +19,8 @@ function createServer (configOverrides = {}) {
   router.on('POST', '/v1/databases/:databaseName/records/:collectionId', require('./commands/records/create.js')(config));
   router.on('GET', '/v1/databases/:databaseName/records/:collectionId/:recordId', require('./commands/records/read.js')(config));
 
+  router.on('GET', '/v1/databases/:databaseName/logs/:collectionId', require('./commands/logs/search.js')(config));
+
   let server;
   function start () {
     server = http.createServer((req, res) => {
