@@ -36,7 +36,7 @@ rightoTest('list items in collection with default pagination', function * (t) {
     data: { test: 'testing' }
   });
 
-  yield righto.handle(createWithError, (a, callback) => callback());
+  yield righto.handle(createWithError, (originalError, callback) => callback());
 
   const rest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/logs/test'

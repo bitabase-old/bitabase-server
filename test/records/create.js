@@ -1,15 +1,19 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
+
+const reset = require('../helpers/resetCB');
 const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
 
-test('headers are available in transformations', async t => {
+rightoTest('headers are available in transformations', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -22,7 +26,8 @@ test('headers are available in transformations', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/users', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     headers: {
       'x-test-headers': 'test-header-value'
     },
@@ -32,19 +37,21 @@ test('headers are available in transformations', async t => {
     }
   });
 
-  t.equal(testInsert.status, 201);
-  t.equal(testInsert.data.test, 'test-header-value');
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.test, 'test-header-value');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('headers are available in presenters', async t => {
+rightoTest('headers are available in presenters', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -57,7 +64,8 @@ test('headers are available in presenters', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/users', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     headers: {
       'x-test-headers': 'test-header-value'
     },
@@ -67,19 +75,21 @@ test('headers are available in presenters', async t => {
     }
   });
 
-  t.equal(testInsert.status, 201);
-  t.equal(testInsert.data.test, 'test-header-value');
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.test, 'test-header-value');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('only x- headers are allowed', async t => {
+rightoTest('only x- headers are allowed', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -92,7 +102,8 @@ test('only x- headers are allowed', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/users', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     headers: {
       'x-test-headers': 'test-header-value',
       'no-thanks': 'no-no-no'
@@ -103,19 +114,21 @@ test('only x- headers are allowed', async t => {
     }
   });
 
-  t.equal(testInsert.status, 201);
-  t.notOk(testInsert.data.test);
+  t.equal(testInsert.response.statusCode, 201);
+  t.notOk(testInsert.body.test);
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('validation failure -> unknown column', async t => {
+rightoTest('validation failure -> unknown column', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -125,7 +138,8 @@ test('validation failure -> unknown column', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       knownColumn: 'test',
@@ -133,45 +147,50 @@ test('validation failure -> unknown column', async t => {
     }
   });
 
-  t.equal(testInsert.status, 400);
-  t.equal(testInsert.data.unknownColumn, 'unknown column');
+  t.equal(testInsert.response.statusCode, 400);
+  t.equal(testInsert.body.unknownColumn, 'unknown column');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('create record -> with no schema', async t => {
+rightoTest('create record -> with no schema', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test'
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       unknownColumn: 'yes'
     }
   });
 
-  t.equal(testInsert.status, 201);
-  t.equal(testInsert.data.unknownColumn, 'yes');
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.unknownColumn, 'yes');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('test inbuild schema field types', async t => {
+rightoTest('test inbuild schema field types', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -183,7 +202,8 @@ test('test inbuild schema field types', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       testString: 'onetwothree',
@@ -192,21 +212,23 @@ test('test inbuild schema field types', async t => {
     }
   });
 
-  t.equal(testInsert.status, 201);
-  t.equal(testInsert.data.testString, 'onetwothree');
-  t.equal(testInsert.data.testNumber, 123);
-  t.deepEqual(testInsert.data.testArray, [1, 2, 3]);
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.testString, 'onetwothree');
+  t.equal(testInsert.body.testNumber, 123);
+  t.deepEqual(testInsert.body.testArray, [1, 2, 3]);
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('test inbuild schema field types when wrong', async t => {
+rightoTest('test inbuild schema field types when wrong', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -218,7 +240,8 @@ test('test inbuild schema field types when wrong', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       testString: 123,
@@ -227,21 +250,23 @@ test('test inbuild schema field types when wrong', async t => {
     }
   });
 
-  t.equal(testInsert.status, 400);
-  t.deepEqual(testInsert.data.testString, ['must be string']);
-  t.deepEqual(testInsert.data.testNumber, ['must be number']);
-  t.deepEqual(testInsert.data.testArray, ['must be array']);
+  t.equal(testInsert.response.statusCode, 400);
+  t.deepEqual(testInsert.body.testString, ['must be string']);
+  t.deepEqual(testInsert.body.testNumber, ['must be number']);
+  t.deepEqual(testInsert.body.testArray, ['must be array']);
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('test inbuild schema field types when null', async t => {
+rightoTest('test inbuild schema field types when null', function * (t) {
   t.plan(1);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -254,7 +279,8 @@ test('test inbuild schema field types when null', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/test', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       always: 'a',
@@ -264,7 +290,7 @@ test('test inbuild schema field types when null', async t => {
     }
   });
 
-  t.equal(testInsert.status, 201);
+  t.equal(testInsert.response.statusCode, 201);
 
-  await server.stop();
+  yield righto(server.stop);
 });
