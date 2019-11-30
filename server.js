@@ -22,19 +22,24 @@ function createServer (configOverrides = {}) {
   router.on('GET', '/v1/databases/:databaseName/logs/:collectionName', require('./commands/logs/search.js')(config));
 
   let server;
-  function start () {
-    server = http.createServer((req, res) => {
-      router.lookup(req, res);
+  function start (callback) {
+    server = http.createServer((request, response) => {
+      router.lookup(request, response);
     }).listen(config.port);
+
+    server.on('listening', function () {
+      callback && callback();
+    });
 
     console.log(`[bitabase-server] Listening on port ${config.port}`);
 
     return { start, stop };
   }
 
-  function stop () {
+  function stop (callback) {
     console.log('[bitabase-server] Shutting down');
     server && server.close();
+    callback && callback();
   }
 
   return { start, stop };

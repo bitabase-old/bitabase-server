@@ -1,18 +1,20 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
+
+const reset = require('../helpers/resetCB');
 const createServer = require('../../server');
 
-test('create item in collection with built in rule failures');
+const rightoTest = require('../helpers/rightoTest');
 
-test('create item in collection with validation error on name', async t => {
+rightoTest('create item in collection with validation error on name', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  // Create test collection with validation
-  const response = await httpRequest('/v1/databases/te-st/collections', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/te-st/collections',
     method: 'post',
     data: {
       name: 'te-£$%st',
@@ -22,22 +24,23 @@ test('create item in collection with validation error on name', async t => {
     }
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(response.status, 400);
-  t.deepEqual(response.data, {
+  t.equal(rest.response.statusCode, 400);
+  t.deepEqual(rest.body, {
     name: 'can only be alpha numeric'
   });
 });
 
-test('create item in collection with built in validation error', async t => {
+rightoTest('create item in collection with built in validation error', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  // Create test collection with validation
-  await httpRequest('/v1/databases/te-st/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/te-st/collections',
     method: 'post',
     data: {
       name: 'te-st',
@@ -49,8 +52,8 @@ test('create item in collection with built in validation error', async t => {
     }
   });
 
-  // Make request
-  const response = await httpRequest('/v1/databases/te-st/records/te-st', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/te-st/records/te-st',
     method: 'post',
     data: {
       testString: 10,
@@ -58,24 +61,25 @@ test('create item in collection with built in validation error', async t => {
     }
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(response.status, 400);
-  t.deepEqual(response.data, {
+  t.equal(rest.response.statusCode, 400);
+  t.deepEqual(rest.body, {
     testString: ['must be string'],
     testRequired: ['required'],
     testRequiredAgain: ['required']
   });
 });
 
-test('create item in collection without using all fields', async t => {
+rightoTest('create item in collection without using all fields', function * (t) {
   t.plan(3);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  // Create test collection with validation
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -86,29 +90,31 @@ test('create item in collection without using all fields', async t => {
     }
   });
 
-  // Make request
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       testOptionalOne: 'test'
     }
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(response.status, 201);
-  t.ok(response.data.id);
-  t.equal(response.data.testOptionalOne, 'test');
+  t.equal(rest.response.statusCode, 201);
+  t.ok(rest.body.id);
+  t.equal(rest.body.testOptionalOne, 'test');
 });
 
-test('create item in collection with custom validation error', async t => {
+rightoTest('create item in collection with custom validation error', function * (t) {
   t.plan(2);
-  await reset();
+  yield righto(reset);
 
-  const server = await createServer().start();
+  const server = createServer();
+  yield righto(server.start);
 
   // Create test collection with validation
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -119,29 +125,31 @@ test('create item in collection with custom validation error', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const response = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       test: 'test1'
     }
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(response.status, 400);
-  t.deepEqual(response.data, {
+  t.equal(response.response.statusCode, 400);
+  t.deepEqual(response.body, {
     test: ['must be something']
   });
 });
 
-test('create item in collection with customer presenter', async t => {
+rightoTest('create item in collection with customer presenter', function * (t) {
   t.plan(5);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  // Create test collection with validation
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -156,7 +164,8 @@ test('create item in collection with customer presenter', async t => {
   });
 
   // Make request
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const response = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       test: 'test1',
@@ -165,28 +174,29 @@ test('create item in collection with customer presenter', async t => {
   });
 
   // Find record
-  const found = await httpRequest(
-    `/v1/databases/test/records/test/${response.data.id}`
-  );
+  const found = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/records/test/${response.body.id}`
+  });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(response.status, 201);
-  t.equal(response.data.test, 'test1');
-  t.notOk(response.data.testToRemove);
-  t.ok(response.data.id);
+  t.equal(response.response.statusCode, 201);
+  t.equal(response.body.test, 'test1');
+  t.notOk(response.body.testToRemove);
+  t.ok(response.body.id);
 
-  t.notOk(found.data.testToRemove);
+  t.notOk(found.body.testToRemove);
 });
 
-test('create item in collection with customer transform', async t => {
+rightoTest('create item in collection with customer transform', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  // Create test collection with validation
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -199,36 +209,36 @@ test('create item in collection with customer transform', async t => {
     }
   });
 
-  // Make request
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const response = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
     data: {
       test: 'test1'
     }
   });
 
-  t.equal(response.status, 201);
-  t.equal(response.data.test, 'test1-changed');
-  t.ok(response.data.id);
+  t.equal(response.response.statusCode, 201);
+  t.equal(response.body.test, 'test1-changed');
+  t.ok(response.body.id);
 
-  // Find record
-  const found = await httpRequest(
-    `/v1/databases/test/records/test/${response.data.id}`
-  );
+  const found = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/records/test/${response.body.id}`
+  });
 
-  t.equal(found.data.test, 'test1-changed');
+  t.equal(found.body.test, 'test1-changed');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('create new collection', async t => {
+rightoTest('create new collection', function * (t) {
   t.plan(1);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  const response = await httpRequest('/v1/databases/test/collections', {
+  const response = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -247,42 +257,41 @@ test('create new collection', async t => {
       transducers: [
         '{...body password: hashText(body.password)}'
       ]
-    },
-    validateStatus: status => status < 500
+    }
   });
 
-  t.equal(response.status, 201);
+  t.equal(response.response.statusCode, 201);
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('create new collection -> duplicate collectionName', async t => {
+rightoTest('create new collection -> duplicate collectionName', function * (t) {
   t.plan(2);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'newcollection',
       schema: {}
-    },
-    validateStatus: status => status < 500
+    }
   });
 
-  const response = await httpRequest('/v1/databases/test/collections', {
+  const response = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'newcollection',
       schema: {}
-    },
-    validateStatus: status => status < 500
+    }
   });
 
-  t.equal(response.status, 422);
-  t.deepEqual(response.data, { name: 'already taken' });
+  t.equal(response.response.statusCode, 422);
+  t.deepEqual(response.body, { name: 'already taken' });
 
-  await server.stop();
+  yield righto(server.stop);
 });
