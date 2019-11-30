@@ -3,7 +3,7 @@ const querystring = require('querystring');
 const righto = require('righto');
 const callarestJson = require('callarest/json');
 
-const reset = require('../helpers/resetCB');
+const reset = require('../helpers/reset');
 const createServer = require('../../server');
 const rightoTest = require('../helpers/rightoTest');
 
