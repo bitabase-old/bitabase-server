@@ -3,7 +3,6 @@ const callarestJson = require('callarest/json');
 
 const reset = require('../helpers/resetCB');
 const createServer = require('../../server');
-
 const rightoTest = require('../helpers/rightoTest');
 
 rightoTest('create item in collection with validation error on name', function * (t) {

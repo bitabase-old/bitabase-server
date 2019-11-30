@@ -1,34 +1,40 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
+
+const reset = require('../helpers/resetCB');
 const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
 
-test('list collections: empty', async t => {
+rightoTest('list collections: empty', function * (t) {
   t.plan(1);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const response = await httpRequest('/v1/databases/test/collections', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'get'
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.deepEqual(response.data, {
+  t.deepEqual(rest.body, {
     count: 0,
     items: []
   });
 });
 
-test('list collections: one db', async t => {
+rightoTest('list collections: one db', function * (t) {
   t.plan(1);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
   // Create a collection
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -41,20 +47,22 @@ test('list collections: one db', async t => {
   });
 
   // Create a record
-  await httpRequest('/v1/databases/test/collections/test', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'post',
     data: {
       test: 'onse'
     }
   });
 
-  const response = await httpRequest('/v1/databases/test/collections', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'get'
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.deepEqual(response.data, {
+  t.deepEqual(rest.body, {
     count: 1,
     items: ['test']
   });

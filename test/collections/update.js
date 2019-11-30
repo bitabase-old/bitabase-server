@@ -1,10 +1,13 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
-const createServer = require('../../server');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
 
-async function createTestCollection () {
-  return httpRequest('/v1/databases/test/collections', {
+const reset = require('../helpers/resetCB');
+const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
+
+async function createTestCollection (callback) {
+  return callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -12,17 +15,18 @@ async function createTestCollection () {
         test: ['required', 'string']
       }
     }
-  });
+  }, callback);
 }
 
-test('collections.update: update a collection', async t => {
+rightoTest('collections.update: update a collection', function * (t) {
   t.plan(2);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -30,7 +34,8 @@ test('collections.update: update a collection', async t => {
     }
   });
 
-  const addFieldsResponse = await httpRequest('/v1/databases/test/collections/test', {
+  const addFieldsRest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'put',
     data: {
       name: 'test',
@@ -39,13 +44,13 @@ test('collections.update: update a collection', async t => {
         newfield1: ['required', 'string'],
         newfield2: ['required', 'string']
       }
-    },
-    validateStatus: status => status < 500
+    }
   });
 
-  t.equal(addFieldsResponse.status, 200);
+  t.equal(addFieldsRest.response.statusCode, 200);
 
-  const removeFieldResponse = await httpRequest('/v1/databases/test/collections/test', {
+  const removeFieldRest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'put',
     data: {
       name: 'test',
@@ -53,24 +58,25 @@ test('collections.update: update a collection', async t => {
       schema: {
         newfield1: ['required', 'string']
       }
-    },
-    validateStatus: status => status < 500
+    }
   });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(removeFieldResponse.status, 200);
+  t.equal(removeFieldRest.response.statusCode, 200);
 });
 
-test('collections.update: add fields to collection', async t => {
+rightoTest('collections.update: add fields to collection', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const collection = await createTestCollection();
+  const collection = yield righto(createTestCollection);
 
-  const createResponse = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`, {
+  const createRest = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/collections/${collection.body.name}`,
     method: 'put',
     data: {
       name: 'test',
@@ -80,11 +86,13 @@ test('collections.update: add fields to collection', async t => {
     }
   });
 
-  const validateResponse = await httpRequest(`/v1/databases/test/collections/${collection.data.name}`);
-  await server.stop();
+  const validateResponse = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/collections/${collection.body.name}`
+  });
+  yield righto(server.stop);
 
-  t.equal(createResponse.status, 200);
-  t.deepEqual(validateResponse.data, {
+  t.equal(createRest.response.statusCode, 200);
+  t.deepEqual(validateResponse.body, {
     id: 'test',
     name: 'test',
     schema: { test: ['required', 'string'] }
