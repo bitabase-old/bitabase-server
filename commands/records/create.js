@@ -13,7 +13,7 @@ const handleAndLogError = require('../../modules/handleAndLogError');
 
 const uuidv4 = require('uuid').v4;
 
-function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
+function insertRecordIntoDatabase (collectionName, data, dbConnection, callback) {
   if (typeof data !== 'object') {
     return callback(new Error({
       statusCode: 500,
@@ -24,7 +24,7 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
   const id = uuidv4();
 
   const sql = `
-    INSERT INTO "_${collectionId}"
+    INSERT INTO "_${collectionName}"
     (id, data, date_created)
     VALUES 
     (?, ?, ?)
@@ -47,7 +47,7 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
 module.exports = appConfig => function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
@@ -61,8 +61,8 @@ module.exports = appConfig => function (request, response, params) {
     body: data,
     request: {
       method: request.method,
-      databaseName: params.collectionId,
-      collectionName: params.collectionId
+      databaseName: params.collectionName,
+      collectionName: params.collectionName
     }
   });
   const validData = righto(validateDataAgainstSchema, collection.get('config'), schemaScope);
@@ -75,13 +75,13 @@ module.exports = appConfig => function (request, response, params) {
     method: 'post',
     request: {
       method: request.method,
-      databaseName: params.collectionId,
-      collectionName: params.collectionId
+      databaseName: params.collectionName,
+      collectionName: params.collectionName
     }
   });
   const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
 
-  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionId, transducedData, dbConnection);
+  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionName, transducedData, dbConnection);
 
   const presenterScope = righto.resolve({
     record: insertedRecord,
@@ -91,8 +91,8 @@ module.exports = appConfig => function (request, response, params) {
     method: 'post',
     request: {
       method: request.method,
-      databaseName: params.collectionId,
-      collectionName: params.collectionId
+      databaseName: params.collectionName,
+      collectionName: params.collectionName
     }
   });
 
@@ -100,7 +100,7 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, result) {
     if (error) {
-      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);
     }
 

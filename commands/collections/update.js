@@ -19,10 +19,10 @@ module.exports = appConfig => function (request, response, params) {
   const parsedData = righto(finalStream, request, JSON.parse);
   const data = righto(validate, parsedData).get(data => ({
     ...data,
-    id: params.collectionId
+    id: params.collectionName
   }));
 
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
   const updatedConfigFile = righto(updateConfigFile, collection, data);
 
   const result = righto.mate(data, righto.after(updatedConfigFile));

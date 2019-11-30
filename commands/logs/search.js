@@ -8,11 +8,11 @@ const queryStringToSql = require('../../modules/queryStringToSql');
 const getCollection = require('../../modules/getCollection');
 
 module.exports = appConfig => function (request, response, params) {
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
-  const recordsSql = queryStringToSql.records(`${params.collectionId}_errors`, 'https://localhost' + request.url);
+  const recordsSql = queryStringToSql.records(`${params.collectionName}_errors`, 'https://localhost' + request.url);
   const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
 
   records(function (error, records) {

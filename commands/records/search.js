@@ -13,18 +13,18 @@ module.exports = appConfig => function (request, response, params) {
   const username = request.headers.username;
   const password = request.headers.password;
 
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
 
-  const recordsSql = queryStringToSql.records(params.collectionId, 'https://localhost' + request.url);
+  const recordsSql = queryStringToSql.records(params.collectionName, 'https://localhost' + request.url);
   const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
 
   const recordsData = records.get(records => records.map(record => JSON.parse(record.data)));
 
-  const countSql = queryStringToSql.count(params.collectionId, 'https://localhost' + request.url);
+  const countSql = queryStringToSql.count(params.collectionName, 'https://localhost' + request.url);
   const totalRecordCount = righto(sqlite.getOne, countSql.query, countSql.values, dbConnection);
 
   const presenterScope = righto.resolve({
@@ -35,8 +35,8 @@ module.exports = appConfig => function (request, response, params) {
     trace: 'records->search->present',
     request: {
       method: request.method,
-      databaseName: params.collectionId,
-      collectionName: params.collectionId
+      databaseName: params.collectionName,
+      collectionName: params.collectionName
     }
   });
   const presentableRecords = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(records));
@@ -45,7 +45,7 @@ module.exports = appConfig => function (request, response, params) {
 
   recordsAndCount(function (error, records, recordCount) {
     if (error) {
-      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);
     }
 

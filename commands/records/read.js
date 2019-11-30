@@ -12,12 +12,12 @@ module.exports = appConfig => function (request, response, params) {
   const username = request.headers.username;
   const password = request.headers.password;
 
-  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
-  const record = righto(sqlite.getOne, `SELECT data FROM "_${params.collectionId}" WHERE id = ?`, [params.recordId], dbConnection);
+  const record = righto(sqlite.getOne, `SELECT data FROM "_${params.collectionName}" WHERE id = ?`, [params.recordId], dbConnection);
   const recordData = record.get(record => {
     return record ? JSON.parse(record.data) : righto.fail({
       statusCode: 404, friendly: { error: 'Not Found' }
@@ -32,8 +32,8 @@ module.exports = appConfig => function (request, response, params) {
     trace: 'records->read->present',
     request: {
       method: request.method,
-      databaseName: params.collectionId,
-      collectionName: params.collectionId
+      databaseName: params.collectionName,
+      collectionName: params.collectionName
     }
   });
 
@@ -41,7 +41,7 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, record) {
     if (error) {
-      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);
     }
 
