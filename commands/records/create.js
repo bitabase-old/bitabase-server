@@ -56,16 +56,28 @@ module.exports = appConfig => function (request, response, params) {
   const schemaScope = righto.resolve({
     user,
     headers: request.headers,
+    trace: 'records->create->schema',
+    method: 'post',
     body: data,
-    method: 'post'
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
   const validData = righto(validateDataAgainstSchema, collection.get('config'), schemaScope);
 
   const transducerScope = righto.resolve({
     user,
     headers: request.headers,
+    trace: 'records->create->transducer',
     body: validData,
-    method: 'post'
+    method: 'post',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
   const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
 
@@ -75,7 +87,13 @@ module.exports = appConfig => function (request, response, params) {
     record: insertedRecord,
     user,
     headers: request.headers,
-    method: 'post'
+    trace: 'records->create->present',
+    method: 'post',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
 
   const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);

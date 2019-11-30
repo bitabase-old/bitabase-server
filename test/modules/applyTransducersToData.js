@@ -42,7 +42,7 @@ test('applyTransducersToData -> syntax error', (t) => {
   t.plan(2);
 
   function done (error, result) {
-    t.equal(error.toString(), 'Parse error,\nunexpected token.,\nAt 13 "{......WHOOPS-->.<--.}"');
+    t.equal(error.error.code, 'SCRIPT_EVALUATE_RUNTIME');
     t.notOk(result, 'result was not passed');
   }
 
@@ -59,10 +59,14 @@ test('applyTransducersToData -> syntax error', (t) => {
 });
 
 test('applyTransducersToData -> returns none object', (t) => {
-  t.plan(2);
+  t.plan(6);
 
   function done (error, result) {
-    t.equal(error.toString(), 'Must return an object');
+    t.equal(error.script, '"Hello there"');
+    t.equal(error.scope.body.a, 1);
+    t.equal(error.returned, 'Hello there');
+    t.equal(error.error.code, 'SCRIPT_EVALUATE_RUNTIME');
+    t.equal(error.error.message, 'transducer did not return an object');
     t.notOk(result, 'result was not passed');
   }
 

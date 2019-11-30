@@ -21,7 +21,7 @@ test('validateDataAgainstSchema -> syntax error', (t) => {
   t.plan(2);
 
   function done (error, result) {
-    t.equal(error.toString(), 'Parse error,\nunexpected token.,\nAt 13 "{......WHOOPS-->.<--.}"');
+    t.equal(error.error.code, 'SCRIPT_EVALUATE_RUNTIME');
     t.notOk(result, 'result was not passed');
   }
 

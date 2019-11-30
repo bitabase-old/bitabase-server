@@ -1,6 +1,5 @@
 const righto = require('righto');
 const evaluate = require('./evaluate');
-const ErrorWithObject = require('error-with-object');
 
 function applyTransducersToData (collectionConfig, scope, callback) {
   const { transducers } = collectionConfig;
@@ -12,8 +11,8 @@ function applyTransducersToData (collectionConfig, scope, callback) {
   const reject = (statusCode, message) => {
     return righto.fail({
       statusCode, friendly: message
-    })
-  }
+    });
+  };
 
   const finalBody = righto.reduce(
     transducers,
@@ -23,7 +22,15 @@ function applyTransducersToData (collectionConfig, scope, callback) {
         reject,
         body
       }).get(result => {
-        return typeof result === 'object' ? result : righto.fail('Must return an object')
+        return typeof result === 'object' ? result : righto.fail({
+          script: next,
+          scope,
+          returned: result,
+          error: {
+            code: 'SCRIPT_EVALUATE_RUNTIME',
+            message: 'transducer did not return an object'
+          }
+        });
       });
     },
     scope.body

@@ -34,7 +34,7 @@ function logCollectionError (collectionConfig, error, callback) {
   const executedBuildQuery = righto(sqlite.run, sqlTableCreate, dbConnection);
   const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection, righto.after(executedBuildQuery));
 
-  executedQuery(function (error, result) {  
+  executedQuery(function (error, result) {
     callback(error, result);
   });
 }

@@ -1,5 +1,6 @@
 const presh = require('presh');
 const righto = require('righto');
+const ErrorWithObject = require('error-with-object');
 
 const hashText = require('pbkdf2-wrapper/hashText');
 const verifyHash = require('pbkdf2-wrapper/verifyHash');
@@ -21,7 +22,7 @@ function evaluate (script, scope, callback) {
 
   scope.headers = onlyAllowXHeaders(scope.headers);
 
-  scope = {
+  const globallyAvailableOption = {
     concat: (...args) => args.join(''),
     length: (thing) => thing.length,
     toUpperCase: (string) => string.toUpperCase(),
@@ -38,7 +39,11 @@ function evaluate (script, scope, callback) {
     },
 
     hashText: (text) => righto(hashText, text),
-    verifyHash: (plain, hashed) => righto(verifyHash, plain, hashed),
+    verifyHash: (plain, hashed) => righto(verifyHash, plain, hashed)
+  };
+
+  scope = {
+    ...globallyAvailableOption,
     ...scope
   };
 
@@ -46,7 +51,14 @@ function evaluate (script, scope, callback) {
   try {
     result = presh(script, scope);
   } catch (error) {
-    return callback(error);
+    return callback(new ErrorWithObject({
+      script,
+      scope,
+      error: {
+        code: 'SCRIPT_EVALUATE_RUNTIME',
+        message: error
+      }
+    }));
   }
 
   if (result.error) {

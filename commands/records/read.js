@@ -28,7 +28,13 @@ module.exports = appConfig => function (request, response, params) {
     record: recordData,
     user,
     headers: request.headers,
-    method: 'read'
+    method: 'read',
+    trace: 'records->read->present',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
 
   const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);
