@@ -6,7 +6,7 @@ const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
-const writeResponseError = require('../../modules/writeResponseError');
+const handleAndLogError = require('../../modules/handleAndLogError');
 
 module.exports = appConfig => function (request, response, params) {
   const username = request.headers.username;
@@ -35,7 +35,8 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, record) {
     if (error) {
-      return writeResponseError(error, response);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      return handleAndLogError(collection, error, response);
     }
 
     writeResponse(200, record, response);

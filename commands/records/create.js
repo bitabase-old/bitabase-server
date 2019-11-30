@@ -8,9 +8,8 @@ const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
-const writeResponseError = require('../../modules/writeResponseError');
 const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
-const logCollectionError = require('../../modules/logCollectionError');
+const handleAndLogError = require('../../modules/handleAndLogError');
 
 const uuidv4 = require('uuid').v4;
 
@@ -48,9 +47,7 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
 module.exports = appConfig => function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
-  const account = params.databaseName;
-
-  const collection = righto(getCollection(appConfig), account, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
@@ -85,13 +82,8 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, result) {
     if (error) {
-      const collection = righto(getCollection(appConfig), account, params.collectionId);
-      const logged = righto(logCollectionError, collection, error);
-      logged(loggerError => {
-        loggerError && console.log(loggerError);
-        writeResponseError(error, response);
-      });
-      return;
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      return handleAndLogError(collection, error, response);
     }
 
     writeResponse(201, result, response);
