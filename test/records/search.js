@@ -136,6 +136,38 @@ rightoTest('list items in collection with query', function * (t) {
   t.equal(rest.body.items[0].test, 'testing51');
 });
 
+rightoTest('list items in collection with order', function * (t) {
+  t.plan(4);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(createTestCollection);
+
+  for (let i = 0; i < 100; i++) {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
+      method: 'post',
+      data: {
+        test: 'testing' + i
+      }
+    });
+  }
+
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?order=desc(test)',
+    method: 'get'
+  });
+
+  yield righto(server.stop);
+
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 100);
+  t.equal(rest.body.items.length, 10);
+  t.equal(rest.body.items[0].test, 'testing99');
+});
+
 rightoTest('list items in collection with custom pagination', function * (t) {
   t.plan(4);
 

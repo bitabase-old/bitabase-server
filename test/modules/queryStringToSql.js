@@ -3,6 +3,16 @@ const test = require('tape');
 
 const queryStringToSql = require('../../modules/queryStringToSql');
 
+test('orderToMongo', t => {
+  t.plan(1);
+
+  const parsedUrl = (new URL('http://www.example.com/people?order=desc(id),asc(date_created)'));
+  const order = parsedUrl.searchParams.get('order');
+  const parsedOrder = queryStringToSql.orderToMongo(order);
+
+  t.deepEqual(parsedOrder, ['json_extract(data, "$.id") desc', 'json_extract(data, "$.date_created") asc']);
+});
+
 test('simple query', t => {
   t.plan(2);
 

@@ -1,5 +1,21 @@
 const builder = require('mongo-sql');
 
+function orderToMongo (order) {
+  if (!order) {
+    return null;
+  }
+
+  const matcher = /(desc|asc)\((.*?)\)/g;
+  const orders = [...order.matchAll(matcher)]
+    .map(field => {
+      const fieldName = field[2];
+      const fieldDirection = field[1];
+      return `json_extract(data, "$.${fieldName}") ${fieldDirection}`;
+    });
+
+  return orders;
+}
+
 function jsonifySqlQuery (sql, matchFieldNames) {
   const built = builder.sql(sql);
 
@@ -16,12 +32,15 @@ function queryStringToSqlRecords (collectionName, url) {
   let query = parsedUrl.searchParams.get('query');
   query = JSON.parse(query);
 
+  const order = parsedUrl.searchParams.get('order');
+
   const usersQuery = {
     type: 'select',
     table: `_${collectionName}`,
     where: query,
     limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
-    offset: parseInt(parsedUrl.searchParams.get('offset') || 0)
+    offset: parseInt(parsedUrl.searchParams.get('offset') || 0),
+    order: orderToMongo(order)
   };
 
   const matchFieldNames = new RegExp(`"_${collectionName}"."(.*)"`, 'g');
@@ -51,6 +70,7 @@ function queryStringToSqlCount (collectionName, url) {
 }
 
 module.exports = {
+  orderToMongo,
   count: queryStringToSqlCount,
   records: queryStringToSqlRecords
 };
