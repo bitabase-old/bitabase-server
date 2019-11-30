@@ -1,11 +1,15 @@
-const test = require('tape');
 const querystring = require('querystring');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
-const createServer = require('../../server');
 
-async function createTestCollection () {
-  await httpRequest('/v1/databases/test/collections', {
+const righto = require('righto');
+const callarestJson = require('callarest/json');
+
+const reset = require('../helpers/resetCB');
+const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
+
+function createTestCollection (callback) {
+  callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -13,93 +17,103 @@ async function createTestCollection () {
         test: ['required', 'string']
       }
     }
-  });
+  }, callback);
 }
 
-test('list items in collection when empty', async t => {
+rightoTest('list items in collection when empty', function * (t) {
   t.plan(1);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'get'
   });
 
-  t.deepEqual(response.data, {
+  t.deepEqual(rest.body, {
     count: 0,
     items: []
   });
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('list items in collection with default pagination', async t => {
+rightoTest('list items in collection with default pagination', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/records/test', {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/records/test', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'get'
   });
 
-  t.equal(response.status, 200);
-  t.equal(response.data.count, 100);
-  t.equal(response.data.items.length, 10);
-  t.equal(response.data.items[0].test, 'testing0');
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 100);
+  t.equal(rest.body.items.length, 10);
+  t.equal(rest.body.items[0].test, 'testing0');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('list items in collection with custom offset', async t => {
+rightoTest('list items in collection with custom offset', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/records/test', {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/records/test?offset=10', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?offset=10',
     method: 'get'
   });
 
-  t.equal(response.status, 200);
-  t.equal(response.data.count, 100);
-  t.equal(response.data.items.length, 10);
-  t.equal(response.data.items[0].test, 'testing10');
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 100);
+  t.equal(rest.body.items.length, 10);
+  t.equal(rest.body.items[0].test, 'testing10');
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('list items in collection with query', async t => {
+rightoTest('list items in collection with query', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/records/test', {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
       data: { test: 'testing' + i }
     });
@@ -109,41 +123,45 @@ test('list items in collection with query', async t => {
     query: JSON.stringify({ test: 'testing51' })
   });
 
-  const response = await httpRequest('/v1/databases/test/records/test?' + query, {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?' + query,
     method: 'get'
   });
 
-  t.equal(response.status, 200);
-  t.equal(response.data.count, 1);
-  t.equal(response.data.items.length, 1);
-  t.equal(response.data.items[0].test, 'testing51');
+  yield righto(server.stop);
 
-  await server.stop();
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 1);
+  t.equal(rest.body.items.length, 1);
+  t.equal(rest.body.items[0].test, 'testing51');
 });
 
-test('list items in collection with custom pagination', async t => {
+rightoTest('list items in collection with custom pagination', function * (t) {
   t.plan(4);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
   for (let i = 0; i < 100; i++) {
-    await httpRequest('/v1/databases/test/records/test', {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
       data: { test: 'testing' + i }
     });
   }
 
-  const response = await httpRequest('/v1/databases/test/records/test?limit=100', {
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?limit=100',
     method: 'get'
   });
 
-  t.equal(response.status, 200);
-  t.equal(response.data.count, 100);
-  t.equal(response.data.items.length, 100);
-  t.equal(response.data.items[20].test, 'testing20');
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 100);
+  t.equal(rest.body.items.length, 100);
+  t.equal(rest.body.items[20].test, 'testing20');
 
-  await server.stop();
+  yield righto(server.stop);
 });

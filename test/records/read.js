@@ -1,16 +1,19 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
-const createServer = require('../../server');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
 
-test('records read not found', async t => {
+const reset = require('../helpers/resetCB');
+const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
+
+rightoTest('records read not found', function * (t) {
   t.plan(2);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -20,22 +23,25 @@ test('records read not found', async t => {
     }
   });
 
-  const testRead = await httpRequest('/v1/databases/test/records/users/nothere');
+  const testRead = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users/nothere'
+  });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(testRead.status, 404);
-  t.deepEqual(testRead.data, { error: 'Not Found' });
+  t.equal(testRead.response.statusCode, 404);
+  t.deepEqual(testRead.body, { error: 'Not Found' });
 });
 
-test('arrays are returned as arrays', async t => {
+rightoTest('arrays are returned as arrays', function * (t) {
   t.plan(4);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -45,32 +51,36 @@ test('arrays are returned as arrays', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/users', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     method: 'post',
     data: {
       test: ['something']
     }
   });
 
-  const testRead = await httpRequest(`/v1/databases/test/records/users/${testInsert.data.id}`);
+  const testRead = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/records/users/${testInsert.body.id}`
+  });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(testInsert.status, 201);
-  t.deepEqual(testInsert.data.test, ['something']);
+  t.equal(testInsert.response.statusCode, 201);
+  t.deepEqual(testInsert.body.test, ['something']);
 
-  t.equal(testRead.status, 200);
-  t.deepEqual(testRead.data.test, ['something']);
+  t.equal(testRead.response.statusCode, 200);
+  t.deepEqual(testRead.body.test, ['something']);
 });
 
-test('numbers are returned as numbers', async t => {
+rightoTest('numbers are returned as numbers', function * (t) {
   t.plan(4);
 
-  await reset();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const server = await createServer().start();
-
-  await httpRequest('/v1/databases/test/collections', {
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'tests',
@@ -80,20 +90,23 @@ test('numbers are returned as numbers', async t => {
     }
   });
 
-  const testInsert = await httpRequest('/v1/databases/test/records/tests', {
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/tests',
     method: 'post',
     data: {
       test: 100
     }
   });
 
-  const testRead = await httpRequest(`/v1/databases/test/records/tests/${testInsert.data.id}`);
+  const testRead = yield righto(callarestJson, {
+    url: `http://localhost:8000/v1/databases/test/records/tests/${testInsert.body.id}`
+  });
 
-  await server.stop();
+  yield righto(server.stop);
 
-  t.equal(testInsert.status, 201);
-  t.deepEqual(testInsert.data.test, 100);
+  t.equal(testInsert.response.statusCode, 201);
+  t.deepEqual(testInsert.body.test, 100);
 
-  t.equal(testRead.status, 200);
-  t.deepEqual(testRead.data.test, 100);
+  t.equal(testRead.response.statusCode, 200);
+  t.deepEqual(testRead.body.test, 100);
 });

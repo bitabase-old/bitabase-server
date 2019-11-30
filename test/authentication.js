@@ -1,10 +1,13 @@
-const test = require('tape');
-const httpRequest = require('./helpers/httpRequest');
-const reset = require('./helpers/reset');
-const createServer = require('../server');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
 
-function applyRulesToUsercollection () {
-  return httpRequest('/v1/databases/test/collections/users', {
+const reset = require('./helpers/resetCB');
+const createServer = require('../server');
+const rightoTest = require('./helpers/rightoTest');
+
+function applyRulesToUsercollection (callback) {
+  return callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/collections/users',
     method: 'put',
     data: {
       name: 'users',
@@ -26,11 +29,12 @@ function applyRulesToUsercollection () {
         '{...record delete password}'
       ]
     }
-  });
+  }, callback);
 }
 
-function createUserCollection () {
-  return httpRequest('/v1/databases/test/collections', {
+function createUserCollection (callback) {
+  callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'users',
@@ -46,61 +50,69 @@ function createUserCollection () {
         '{...record delete password}'
       ]
     }
-  });
+  }, callback);
 }
 
-function createUser (opts = {}) {
-  return httpRequest('/v1/databases/test/records/users', {
+function createUser (opts = {}, callback) {
+  callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     method: 'post',
     data: {
       username: opts.username || 'testuser',
       password: 'testpass',
       groups: opts.groups || []
     }
-  });
+  }, callback);
 }
 
-test('create user collection without permission', async t => {
+rightoTest('create user collection without permission', function * (t) {
   t.plan(8);
-  await reset();
 
-  const server = await createServer().start();
-  await createUserCollection();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  const adminUser = await createUser({ groups: ['manage_users'] });
-  t.equal(adminUser.status, 201);
+  yield righto(createUserCollection);
+
+  const adminUser = yield righto(createUser, { groups: ['manage_users'] });
+  t.equal(adminUser.response.statusCode, 201);
 
   // Attach rules
-  await applyRulesToUsercollection();
+  yield righto(applyRulesToUsercollection);
 
-  const secondUser = await createUser({ username: 'testuser2', groups: ['manage_users'] });
-  t.equal(secondUser.status, 401);
-  t.deepEqual(secondUser.data, 'not allowed to add groups');
+  const secondUserEventual = righto(createUser, { username: 'testuser2', groups: ['manage_users'] });
+  const secondUser = yield righto.handle(secondUserEventual, (originalError, callback) => {
+    callback(null, originalError);
+  });
 
-  const thirdUser = await createUser({ username: 'testuser2' });
-  t.equal(thirdUser.status, 201);
-  t.equal(thirdUser.data.username, 'testuser2');
-  t.deepEqual(thirdUser.data.groups, []);
-  t.notOk(thirdUser.data.password);
-  t.ok(thirdUser.data.id);
+  t.deepEqual(secondUser.body, 'not allowed to add groups');
+  t.equal(secondUser.response.statusCode, 401);
 
-  await server.stop();
+  const thirdUser = yield righto(createUser, { username: 'testuser2' });
+  t.equal(thirdUser.response.statusCode, 201);
+  t.equal(thirdUser.body.username, 'testuser2');
+  t.deepEqual(thirdUser.body.groups, []);
+  t.notOk(thirdUser.body.password);
+  t.ok(thirdUser.body.id);
+
+  yield righto(server.stop);
 });
 
-test('create user collection as user with permission', async t => {
+rightoTest('create user collection as user with permission', function * (t) {
   t.plan(5);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createUserCollection();
+  yield righto(createUserCollection);
 
-  await createUser({ groups: ['manage_users'] });
+  yield righto(createUser, { groups: ['manage_users'] });
 
-  // Attach rules
-  await applyRulesToUsercollection();
+  yield righto(applyRulesToUsercollection);
 
-  const anotherUser = await httpRequest('/v1/databases/test/records/users', {
+  const anotherUser = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     headers: {
       Host: 'example.localhost:8000',
       username: 'testuser',
@@ -114,29 +126,31 @@ test('create user collection as user with permission', async t => {
     }
   });
 
-  t.equal(anotherUser.status, 201);
-  t.equal(anotherUser.data.username, 'testuser2');
-  t.deepEqual(anotherUser.data.groups, ['manage_users']);
-  t.notOk(anotherUser.data.password);
-  t.ok(anotherUser.data.id);
+  t.equal(anotherUser.response.statusCode, 201);
+  t.equal(anotherUser.body.username, 'testuser2');
+  t.deepEqual(anotherUser.body.groups, ['manage_users']);
+  t.notOk(anotherUser.body.password);
+  t.ok(anotherUser.body.id);
 
-  await server.stop();
+  yield righto(server.stop);
 });
 
-test('auth with invalid details', async t => {
+rightoTest('auth with invalid details', function * (t) {
   t.plan(2);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createUserCollection();
+  yield righto(createUserCollection);
 
-  await createUser({ groups: ['manage_users'] });
+  yield righto(createUser, { groups: ['manage_users'] });
 
   // Attach rules
-  await applyRulesToUsercollection();
+  yield righto(applyRulesToUsercollection);
 
-  const anotherUser = await httpRequest('/v1/databases/test/records/users', {
+  const anotherUserEventual = righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/users',
     headers: {
       username: 'testuser',
       password: 'wrongpass'
@@ -148,9 +162,12 @@ test('auth with invalid details', async t => {
       groups: ['manage_users']
     }
   });
+  const anotherUser = yield righto.handle(anotherUserEventual, (originalError, callback) => {
+    callback(null, originalError);
+  });
 
-  t.equal(anotherUser.status, 401);
-  t.equal(anotherUser.data, 'incorrect username and password');
+  t.equal(anotherUser.response.statusCode, 401);
+  t.equal(anotherUser.body, 'incorrect username and password');
 
-  await server.stop();
+  yield righto(server.stop);
 });

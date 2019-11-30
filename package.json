@@ -9,7 +9,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "callarest": "^1.5.0",
+    "callarest": "^1.6.0",
     "error-with-object": "^1.1.0",
     "final-stream": "^1.0.2",
     "find-my-way": "^2.2.1",
