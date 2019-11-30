@@ -8,8 +8,8 @@ const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
-const writeResponseError = require('../../modules/writeResponseError');
 const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
+const handleAndLogError = require('../../modules/handleAndLogError');
 
 const uuidv4 = require('uuid').v4;
 
@@ -47,9 +47,7 @@ function insertRecordIntoDatabase (collectionId, data, dbConnection, callback) {
 module.exports = appConfig => function (request, response, params) {
   const data = righto(finalStream, request, JSON.parse);
 
-  const account = params.databaseName;
-
-  const collection = righto(getCollection(appConfig), account, params.collectionId);
+  const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
@@ -58,16 +56,28 @@ module.exports = appConfig => function (request, response, params) {
   const schemaScope = righto.resolve({
     user,
     headers: request.headers,
+    trace: 'records->create->schema',
+    method: 'post',
     body: data,
-    method: 'post'
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
   const validData = righto(validateDataAgainstSchema, collection.get('config'), schemaScope);
 
   const transducerScope = righto.resolve({
     user,
     headers: request.headers,
+    trace: 'records->create->transducer',
     body: validData,
-    method: 'post'
+    method: 'post',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
   const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
 
@@ -77,14 +87,21 @@ module.exports = appConfig => function (request, response, params) {
     record: insertedRecord,
     user,
     headers: request.headers,
-    method: 'post'
+    trace: 'records->create->present',
+    method: 'post',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
 
   const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);
 
   presentableRecord(function (error, result) {
     if (error) {
-      return writeResponseError(error, response);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      return handleAndLogError(collection, error, response);
     }
 
     writeResponse(201, result, response);

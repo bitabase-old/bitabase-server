@@ -3,11 +3,11 @@ const sqlite = require('sqlite-fp');
 const writeResponse = require('write-response');
 
 const { getConnection } = require('../../modules/cachableSqlite');
-const writeResponseError = require('../../modules/writeResponseError');
 const queryStringToSql = require('../../modules/queryStringToSql');
 const getUser = require('../../modules/getUser');
 const getCollection = require('../../modules/getCollection');
 const applyPresentersToData = require('../../modules/applyPresentersToData');
+const handleAndLogError = require('../../modules/handleAndLogError');
 
 module.exports = appConfig => function (request, response, params) {
   const username = request.headers.username;
@@ -31,7 +31,13 @@ module.exports = appConfig => function (request, response, params) {
     record: recordsData,
     user,
     headers: request.headers,
-    method: 'get'
+    method: 'get',
+    trace: 'records->search->present',
+    request: {
+      method: request.method,
+      databaseName: params.collectionId,
+      collectionName: params.collectionId
+    }
   });
   const presentableRecords = righto(applyPresentersToData, collection.get('config'), presenterScope, righto.after(records));
 
@@ -39,7 +45,8 @@ module.exports = appConfig => function (request, response, params) {
 
   recordsAndCount(function (error, records, recordCount) {
     if (error) {
-      return writeResponseError(error, response);
+      const collection = righto(getCollection(appConfig), params.databaseName, params.collectionId);
+      return handleAndLogError(collection, error, response);
     }
 
     writeResponse(200, {
