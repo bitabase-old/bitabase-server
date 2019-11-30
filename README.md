@@ -79,7 +79,7 @@ This is a very early attempt at the bitabase rest server.
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">3.1</a></td>
-    <td>POST</td>
+    <td>GET</td>
     <td>/v1/databases/:databaseName/logs/:collectionName</td>
     <td>Search through logs</td>
   </tr>
