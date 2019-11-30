@@ -81,7 +81,7 @@ This is a very early attempt at the bitabase rest server.
     <td><a href="https://www.github.com/bitabase/bitabase-manager">3.1</a></td>
     <td>POST</td>
     <td>/v1/databases/:databaseName/logs/:collectionName</td>
-    <td>List all logs</td>
+    <td>Search through logs</td>
   </tr>
 </table>
 
