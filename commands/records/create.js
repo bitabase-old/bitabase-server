@@ -10,6 +10,7 @@ const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
 const writeResponseError = require('../../modules/writeResponseError');
 const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
+const logCollectionError = require('../../modules/logCollectionError');
 
 const uuidv4 = require('uuid').v4;
 
@@ -84,7 +85,13 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, result) {
     if (error) {
-      return writeResponseError(error, response);
+      const collection = righto(getCollection(appConfig), account, params.collectionId);
+      const logged = righto(logCollectionError, collection, error);
+      logged(loggerError => {
+        loggerError && console.log(loggerError);
+        writeResponseError(error, response);
+      });
+      return;
     }
 
     writeResponse(201, result, response);
