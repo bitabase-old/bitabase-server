@@ -5,7 +5,7 @@ const reset = require('../helpers/reset');
 const createServer = require('../../server');
 const rightoTest = require('../helpers/rightoTest');
 
-async function createTestCollection (callback) {
+function createTestCollection (callback) {
   return callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
