@@ -17,7 +17,11 @@ module.exports = appConfig => function (request, response, params) {
 
   records(function (error, records) {
     if (error) {
-      return writeResponseError(error, response);
+      if (error.toString().includes('no such table')) {
+        return writeResponse(200, [], response);
+      } else {
+        return writeResponseError(error, response);
+      }
     }
 
     const recordsParsed = records.map(record => ({
