@@ -71,6 +71,18 @@ This is a very early attempt at the bitabase rest server.
     <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
     <td>Get a specific record</td>
   </tr>
+  <tr>
+    <td colspan=4>
+      <strong>Logs</strong></br>
+      When a record method fails a log will be stored containing information on the failure
+    </td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">3.1</a></td>
+    <td>POST</td>
+    <td>/v1/databases/:databaseName/logs/:collectionName</td>
+    <td>List all logs</td>
+  </tr>
 </table>
 
 ## License
