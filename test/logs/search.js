@@ -1,10 +1,13 @@
-const test = require('tape');
-const httpRequest = require('../helpers/httpRequest');
-const reset = require('../helpers/reset');
-const createServer = require('../../server');
+const righto = require('righto');
+const callarestJson = require('callarest/json');
 
-async function createTestCollection () {
-  await httpRequest('/v1/databases/test/collections', {
+const reset = require('../helpers/resetCB');
+const createServer = require('../../server');
+const rightoTest = require('../helpers/rightoTest');
+
+function createTestCollection (callback) {
+  callarestJson({
+    url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
     data: {
       name: 'test',
@@ -15,37 +18,40 @@ async function createTestCollection () {
         '{...$..... na}'
       ]
     }
-  });
+  }, callback);
 }
 
-test('list items in collection with default pagination', async t => {
+rightoTest('list items in collection with default pagination', function * (t) {
   t.plan(10);
-  await reset();
 
-  const server = await createServer().start();
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
 
-  await createTestCollection();
+  yield righto(createTestCollection);
 
-  await httpRequest('/v1/databases/test/records/test', {
+  const createWithError = righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: { test: 'testing' },
-    validateStatus: statusCode => 500
+    data: { test: 'testing' }
   });
 
-  const response = await httpRequest('/v1/databases/test/logs/test', {
-    method: 'get'
+  yield righto.handle(createWithError, (a, callback) => callback());
+
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/logs/test'
   });
 
-  t.equal(response.status, 200);
-  t.equal(response.data[0].data.script, '{...$..... na}');
-  t.equal(response.data[0].data.scope.record.test, 'testing');
-  t.equal(response.data[0].data.scope.trace, 'records->create->present');
-  t.equal(response.data[0].data.scope.method, 'post');
-  t.equal(response.data[0].data.scope.request.method, 'POST');
-  t.equal(response.data[0].data.scope.request.databaseName, 'test');
-  t.equal(response.data[0].data.scope.request.collectionName, 'test');
-  t.equal(response.data[0].data.error.code, 'SCRIPT_EVALUATE_RUNTIME');
-  t.equal(response.data[0].data.error.message, 'Parse error,\nUnexpected token,\nAt 8 "{...$...-->.<--. na}"');
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body[0].data.script, '{...$..... na}');
+  t.equal(rest.body[0].data.scope.record.test, 'testing');
+  t.equal(rest.body[0].data.scope.trace, 'records->create->present');
+  t.equal(rest.body[0].data.scope.method, 'post');
+  t.equal(rest.body[0].data.scope.request.method, 'POST');
+  t.equal(rest.body[0].data.scope.request.databaseName, 'test');
+  t.equal(rest.body[0].data.scope.request.collectionName, 'test');
+  t.equal(rest.body[0].data.error.code, 'SCRIPT_EVALUATE_RUNTIME');
+  t.equal(rest.body[0].data.error.message, 'Parse error,\nUnexpected token,\nAt 8 "{...$...-->.<--. na}"');
 
-  await server.stop();
+  yield righto(server.stop);
 });
