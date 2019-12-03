@@ -3,6 +3,7 @@ const writeResponseError = require('./writeResponseError');
 const logCollectionError = require('./logCollectionError');
 
 function handleAndLogError (collection, error, response) {
+  console.log(error);
   const logged = righto(logCollectionError, collection, error);
   logged(loggerError => {
     if (loggerError && ![404].includes(loggerError.statusCode || 500)) {
