@@ -197,3 +197,33 @@ rightoTest('list items in collection with custom pagination', function * (t) {
 
   yield righto(server.stop);
 });
+
+rightoTest('list items in collection with custom query and order', function * (t) {
+  t.plan(4);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(createTestCollection);
+
+  for (let i = 0; i < 10; i++) {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
+      method: 'post',
+      data: { test: 'testing' + i }
+    });
+  }
+
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?query={"test":"testing5"}&order=desc(test)',
+    method: 'get'
+  });
+
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 1);
+  t.equal(rest.body.items.length, 1);
+  t.equal(rest.body.items[0].test, 'testing5');
+
+  yield righto(server.stop);
+});

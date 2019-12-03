@@ -17,7 +17,9 @@ module.exports = appConfig => function (request, response, params) {
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, username, password);
-  const record = righto(sqlite.getOne, `SELECT data FROM "_${params.collectionName}" WHERE id = ?`, [params.recordId], dbConnection);
+
+  const recordSql = `SELECT data FROM "_${params.collectionName}" WHERE id = ?`;
+  const record = righto(sqlite.getOne, recordSql, [params.recordId], dbConnection);
   const recordData = record.get(record => {
     return record ? JSON.parse(record.data) : righto.fail({
       statusCode: 404, friendly: { error: 'Not Found' }
@@ -41,6 +43,7 @@ module.exports = appConfig => function (request, response, params) {
 
   presentableRecord(function (error, record) {
     if (error) {
+      error.query = recordSql;
       const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);
     }

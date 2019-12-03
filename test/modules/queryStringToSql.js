@@ -8,9 +8,9 @@ test('orderToMongo', t => {
 
   const parsedUrl = (new URL('http://www.example.com/people?order=desc(id),asc(date_created)'));
   const order = parsedUrl.searchParams.get('order');
-  const parsedOrder = queryStringToSql.orderToMongo(order);
+  const parsedOrder = queryStringToSql.orderToMongo('people', order);
 
-  t.deepEqual(parsedOrder, ['json_extract(data, "$.id") desc', 'json_extract(data, "$.date_created") asc']);
+  t.deepEqual(parsedOrder, ['"_people"."id" desc', '"_people"."date_created" asc']);
 });
 
 test('simple query', t => {
@@ -52,4 +52,20 @@ test('danger', t => {
   const sql = queryStringToSql.records('users', url.toString());
   t.equal(sql.query, 'select "_users".* from "_users" where json_extract(data, "$.firstName = a") = $1 limit $2');
   t.deepEqual(sql.values, ['Joe', 10]);
+});
+
+test('query and order', t => {
+  t.plan(2);
+
+  const url = new URL('https://api.bitabase.net/people');
+  url.search = querystring.stringify({
+    query: JSON.stringify({
+      test: 'testing5'
+    }),
+    order: 'desc(test)'
+  });
+
+  const sql = queryStringToSql.records('users', url.toString());
+  t.equal(sql.query, 'select "_users".* from "_users" where json_extract(data, "$.test") = $1 order by json_extract(data, "$.test") desc limit $2');
+  t.deepEqual(sql.values, ['testing5', 10]);
 });
