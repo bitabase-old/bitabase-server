@@ -45,6 +45,7 @@ module.exports = appConfig => function (request, response, params) {
 
   recordsAndCount(function (error, records, recordCount) {
     if (error) {
+      error.query = recordsSql;
       const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);
     }

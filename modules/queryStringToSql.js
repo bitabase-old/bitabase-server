@@ -1,6 +1,6 @@
 const builder = require('mongo-sql');
 
-function orderToMongo (order) {
+function orderToMongo (collectionName, order) {
   if (!order) {
     return null;
   }
@@ -10,7 +10,8 @@ function orderToMongo (order) {
     .map(field => {
       const fieldName = field[2];
       const fieldDirection = field[1];
-      return `json_extract(data, "$.${fieldName}") ${fieldDirection}`;
+
+      return `"_${collectionName}"."${fieldName}" ${fieldDirection}`;
     });
 
   return orders;
@@ -40,10 +41,10 @@ function queryStringToSqlRecords (collectionName, url) {
     where: query,
     limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
     offset: parseInt(parsedUrl.searchParams.get('offset') || 0),
-    order: orderToMongo(order)
+    order: orderToMongo(collectionName, order)
   };
 
-  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*)"`, 'g');
+  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*?)"`, 'g');
 
   const result = jsonifySqlQuery(usersQuery, matchFieldNames);
 
