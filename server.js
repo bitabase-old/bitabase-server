@@ -18,6 +18,8 @@ function createServer (configOverrides = {}) {
   router.on('GET', '/v1/databases/:databaseName/records/:collectionName', require('./commands/records/search.js')(config));
   router.on('POST', '/v1/databases/:databaseName/records/:collectionName', require('./commands/records/create.js')(config));
   router.on('GET', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/read.js')(config));
+  router.on('DELETE', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/delete.js')(config));
+  router.on('DELETE', '/v1/databases/:databaseName/records/:collectionName', require('./commands/records/deleteByQuery.js')(config));
 
   router.on('GET', '/v1/databases/:databaseName/logs/:collectionName', require('./commands/logs/search.js')(config));
 
