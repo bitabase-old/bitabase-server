@@ -15,10 +15,10 @@ const uuidv4 = require('uuid').v4;
 
 function deleteRecordFromDatabase (collectionName, id, dbConnection, callback) {
   if (typeof id !== 'string') {
-    return callback(new Error({
+    return callback({
       statusCode: 500,
-      friendly: 'Unexpected Server Error'
-    }));
+      friendly: { error: 'Unexpected Server Error' }
+    });
   }
 
   const sql = `
@@ -28,7 +28,14 @@ function deleteRecordFromDatabase (collectionName, id, dbConnection, callback) {
 
   const preparedValuesWithId = [id];
 
-  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
+  const recordSql = `SELECT data FROM "_${collectionName}" WHERE id = ?`;
+  const record = righto(sqlite.getOne, recordSql, [id], dbConnection)
+  .get(item => item || righto.fail({
+      statusCode: 404,
+      friendly: { error: 'Not Found' }
+  }));
+
+  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection, righto.after(record));
 
   const result = righto.mate({ id }, righto.after(executedQuery));
 
@@ -59,22 +66,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const deletedRecord = righto(deleteRecordFromDatabase,  params.collectionName, params.recordId, dbConnection, righto.after(transducedData));
 
-  const presenterScope = righto.resolve({
-    record: deletedRecord,
-    user,
-    headers: request.headers,
-    trace: 'records->delete->present',
-    method: 'delete',
-    request: {
-      method: request.method,
-      databaseName: params.collectionName,
-      collectionName: params.collectionName
-    }
-  });
-
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);
-
-  presentableRecord(function (error, result) {
+  deletedRecord(function (error, result) {
     if (error) {
       const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
       return handleAndLogError(collection, error, response);

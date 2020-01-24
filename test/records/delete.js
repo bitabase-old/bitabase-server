@@ -5,7 +5,7 @@ const reset = require('../helpers/reset');
 const createServer = require('../../server');
 const rightoTest = require('../helpers/rightoTest');
 
-rightoTest('delete record by id', function * (t) {
+rightoTest('delete record by id not found', function * (t) {
   t.plan(2);
 
   yield righto(reset);
@@ -34,7 +34,7 @@ rightoTest('delete record by id', function * (t) {
   t.deepEqual(testDelete.body, { error: 'Not Found' });
 });
 
-rightoTest('delete record', function * (t) {
+rightoTest('delete record by id', function * (t) {
   t.plan(3);
 
   yield righto(reset);

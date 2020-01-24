@@ -1,5 +1,5 @@
 const builder = require('mongo-sql');
-const createMatchFieldNames = collectionName => new RegExp(`"_${collectionName}"\\."(.*)"`, 'g');
+const createMatchFieldNames = collectionName => new RegExp(`"_${collectionName}"\\."(.*?)"`, 'g');
 
 function orderToMongo (collectionName, order) {
   if (!order) {
