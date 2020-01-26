@@ -1,4 +1,5 @@
 const builder = require('mongo-sql');
+const createMatchFieldNames = collectionName => new RegExp(`"_${collectionName}"\\."(.*?)"`, 'g');
 
 function orderToMongo (collectionName, order) {
   if (!order) {
@@ -28,7 +29,7 @@ function jsonifySqlQuery (sql, matchFieldNames) {
   return built;
 }
 
-function queryStringToSqlRecords (collectionName, url) {
+function queryStringToSqlRecords (collectionName, url, type) {
   const parsedUrl = (new URL(url));
   let query = parsedUrl.searchParams.get('query');
   query = JSON.parse(query);
@@ -36,7 +37,7 @@ function queryStringToSqlRecords (collectionName, url) {
   const order = parsedUrl.searchParams.get('order');
 
   const usersQuery = {
-    type: 'select',
+    type: type || 'select',
     table: `_${collectionName}`,
     where: query,
     limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
@@ -44,7 +45,7 @@ function queryStringToSqlRecords (collectionName, url) {
     order: orderToMongo(collectionName, order)
   };
 
-  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*?)"`, 'g');
+  const matchFieldNames = createMatchFieldNames(collectionName);
 
   const result = jsonifySqlQuery(usersQuery, matchFieldNames);
 
@@ -63,7 +64,7 @@ function queryStringToSqlCount (collectionName, url) {
     where: query
   };
 
-  const matchFieldNames = new RegExp(`"_${collectionName}"."(.*)"`, 'g');
+  const matchFieldNames = createMatchFieldNames(collectionName);
 
   const result = jsonifySqlQuery(usersQuery, matchFieldNames);
 
