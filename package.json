@@ -12,7 +12,7 @@
     "callarest": "^1.6.0",
     "error-with-object": "^1.1.0",
     "final-stream": "^1.1.0",
-    "find-my-way": "^2.2.1",
+    "find-my-way": "^2.2.2",
     "mkdirp": "^0.5.5",
     "mongo-sql": "^6.2.0",
     "pbkdf2-wrapper": "^1.2.1",
