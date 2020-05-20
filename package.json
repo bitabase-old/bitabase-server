@@ -18,7 +18,7 @@
     "pbkdf2-wrapper": "^1.2.1",
     "presh": "git+https://github.com/KoryNunn/presh.git#v2",
     "sqlite-fp": "^1.2.0",
-    "uuid": "^3.3.3",
+    "uuid": "^3.4.0",
     "write-response": "^1.2.0"
   },
   "devDependencies": {
