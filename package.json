@@ -11,14 +11,14 @@
   "dependencies": {
     "callarest": "^1.6.0",
     "error-with-object": "^1.1.0",
-    "final-stream": "^1.0.2",
+    "final-stream": "^1.1.0",
     "find-my-way": "^2.2.2",
-    "mkdirp": "^0.5.2",
+    "mkdirp": "^0.5.5",
     "mongo-sql": "^6.2.0",
     "pbkdf2-wrapper": "^1.2.1",
     "presh": "git+https://github.com/KoryNunn/presh.git#v2",
     "sqlite-fp": "^1.2.0",
-    "uuid": "^3.3.3",
+    "uuid": "^3.4.0",
     "write-response": "^1.2.0"
   },
   "devDependencies": {
