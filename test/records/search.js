@@ -11,7 +11,7 @@ function createTestCollection (callback) {
   callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']
@@ -55,7 +55,7 @@ rightoTest('list items in collection with default pagination', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 
@@ -85,7 +85,7 @@ rightoTest('list items in collection with custom offset', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 
@@ -115,7 +115,7 @@ rightoTest('list items in collection with query', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 
@@ -149,7 +149,7 @@ rightoTest('list items in collection with order', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: {
+      body: {
         test: 'testing' + i
       }
     });
@@ -181,7 +181,7 @@ rightoTest('list items in collection with custom pagination', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 
@@ -211,7 +211,7 @@ rightoTest('list items in collection with custom query and order', function * (t
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 

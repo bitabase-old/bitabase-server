@@ -11,7 +11,7 @@ function createTestCollection (callback) {
   callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']
@@ -33,7 +33,7 @@ rightoTest('delete items from collection with query', function * (t) {
     yield righto(callarestJson, {
       url: 'http://localhost:8000/v1/databases/test/records/test',
       method: 'post',
-      data: { test: 'testing' + i }
+      body: { test: 'testing' + i }
     });
   }
 

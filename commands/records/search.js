@@ -20,12 +20,12 @@ module.exports = appConfig => function (request, response, params) {
   const user = righto(getUser(appConfig), dbConnection, username, password);
 
   const recordsSql = queryStringToSql.records(params.collectionName, 'https://localhost' + request.url);
-  const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
+  const records = righto(sqlite.getAll, dbConnection, recordsSql.query, recordsSql.values);
 
   const recordsData = records.get(records => records.map(record => JSON.parse(record.data)));
 
   const countSql = queryStringToSql.count(params.collectionName, 'https://localhost' + request.url);
-  const totalRecordCount = righto(sqlite.getOne, countSql.query, countSql.values, dbConnection);
+  const totalRecordCount = righto(sqlite.getOne, dbConnection, countSql.query, countSql.values);
 
   const presenterScope = righto.resolve({
     record: recordsData,

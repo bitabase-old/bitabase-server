@@ -9,7 +9,7 @@ function createTestCollection (callback) {
   return callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']
@@ -28,7 +28,7 @@ rightoTest('collections.update: update a collection', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {}
     }
@@ -37,7 +37,7 @@ rightoTest('collections.update: update a collection', function * (t) {
   const addFieldsRest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'put',
-    data: {
+    body: {
       name: 'test',
 
       schema: {
@@ -52,7 +52,7 @@ rightoTest('collections.update: update a collection', function * (t) {
   const removeFieldRest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'put',
-    data: {
+    body: {
       name: 'test',
 
       schema: {
@@ -78,7 +78,7 @@ rightoTest('collections.update: add fields to collection', function * (t) {
   const createRest = yield righto(callarestJson, {
     url: `http://localhost:8000/v1/databases/test/collections/${collection.body.name}`,
     method: 'put',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']

@@ -15,7 +15,7 @@ rightoTest('records read not found', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'array']
@@ -43,7 +43,7 @@ rightoTest('arrays are returned as arrays', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'array']
@@ -54,7 +54,7 @@ rightoTest('arrays are returned as arrays', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/users',
     method: 'post',
-    data: {
+    body: {
       test: ['something']
     }
   });
@@ -82,7 +82,7 @@ rightoTest('numbers are returned as numbers', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'tests',
       schema: {
         test: ['required', 'number']
@@ -93,7 +93,7 @@ rightoTest('numbers are returned as numbers', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/tests',
     method: 'post',
-    data: {
+    body: {
       test: 100
     }
   });

@@ -24,7 +24,7 @@ const returnUserResult = (password, callback) => (error, user) => {
 module.exports = config => function (db, username, password, callback) {
   // Get user if logged in
   if (username && password) {
-    sqlite.getAll('SELECT * FROM "_users" WHERE json_extract(data, "$.username") = ?', [username], db, returnUserResult(password, callback));
+    sqlite.getAll(db, 'SELECT * FROM "_users" WHERE json_extract(data, "$.username") = ?', [username], returnUserResult(password, callback));
   } else {
     callback(null, null);
   }

@@ -15,7 +15,7 @@ rightoTest('create item in collection with validation error on name', function *
   const rest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/te-st/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'te-£$%st',
       schema: {
         testString: ['string']
@@ -41,7 +41,7 @@ rightoTest('create item in collection with built in validation error', function 
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/te-st/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'te-st',
       schema: {
         testString: ['string'],
@@ -54,7 +54,7 @@ rightoTest('create item in collection with built in validation error', function 
   const rest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/te-st/records/te-st',
     method: 'post',
-    data: {
+    body: {
       testString: 10,
       testRequired: ''
     }
@@ -80,7 +80,7 @@ rightoTest('create item in collection without using all fields', function * (t) 
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         testOptionalOne: ['string'],
@@ -92,7 +92,7 @@ rightoTest('create item in collection without using all fields', function * (t) 
   const rest = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       testOptionalOne: 'test'
     }
   });
@@ -115,7 +115,7 @@ rightoTest('create item in collection with custom validation error', function * 
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string', 'value == "something" ? null : "must be something"']
@@ -127,7 +127,7 @@ rightoTest('create item in collection with custom validation error', function * 
   const response = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       test: 'test1'
     }
   });
@@ -150,7 +150,7 @@ rightoTest('create item in collection with customer presenter', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string'],
@@ -166,7 +166,7 @@ rightoTest('create item in collection with customer presenter', function * (t) {
   const response = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       test: 'test1',
       testToRemove: 'be_gone'
     }
@@ -197,7 +197,7 @@ rightoTest('create item in collection with customer transform', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']
@@ -211,7 +211,7 @@ rightoTest('create item in collection with customer transform', function * (t) {
   const response = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       test: 'test1'
     }
   });
@@ -239,7 +239,7 @@ rightoTest('create new collection', function * (t) {
   const response = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
 
       // Creating and updating items must conform to this schema
@@ -274,7 +274,7 @@ rightoTest('create new collection -> duplicate collectionName', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'newcollection',
       schema: {}
     }
@@ -283,7 +283,7 @@ rightoTest('create new collection -> duplicate collectionName', function * (t) {
   const response = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'newcollection',
       schema: {}
     }

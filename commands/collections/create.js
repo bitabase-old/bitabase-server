@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const mkdirp = require('mkdirp');
 const righto = require('righto');
 const sqlite = require('sqlite-fp');
 const finalStream = require('final-stream');
@@ -13,13 +12,13 @@ const { getConnection } = require('../../modules/cachableSqlite');
 const writeResponseError = require('../../modules/writeResponseError');
 
 function createTableFromSchema (collectionName, connection, callback) {
-  sqlite.run(
+  sqlite.run(connection,
     `CREATE TABLE "_${collectionName}" (
       id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE,
       data TEXT,
       date_created NUMBER
     )`,
-    connection, callback
+    callback
   );
 }
 
@@ -42,8 +41,7 @@ function createCollectionDatabase (databasePath, databaseName, collectionConfig,
 function createConfigFile (databasePath, databaseName, collectionConfig, callback) {
   const configFile = path.resolve(databasePath, `${databaseName}/${collectionConfig.name}.json`);
   const configFolder = path.dirname(configFile);
-
-  const folderExists = righto(mkdirp, configFolder);
+  const folderExists = righto(fs.mkdir, configFolder, { recursive: true });
   const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
 
   existingConfigFile(function (error, existingConfig) {

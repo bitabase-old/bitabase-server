@@ -15,7 +15,7 @@ rightoTest('headers are available in transformations', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'string']
@@ -32,7 +32,7 @@ rightoTest('headers are available in transformations', function * (t) {
       'x-test-headers': 'test-header-value'
     },
     method: 'post',
-    data: {
+    body: {
       test: 'yes'
     }
   });
@@ -53,7 +53,7 @@ rightoTest('headers are available in presenters', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'string']
@@ -70,7 +70,7 @@ rightoTest('headers are available in presenters', function * (t) {
       'x-test-headers': 'test-header-value'
     },
     method: 'post',
-    data: {
+    body: {
       test: 'yes'
     }
   });
@@ -91,7 +91,7 @@ rightoTest('only x- headers are allowed', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'string']
@@ -109,7 +109,7 @@ rightoTest('only x- headers are allowed', function * (t) {
       'no-thanks': 'no-no-no'
     },
     method: 'post',
-    data: {
+    body: {
       test: 'yes'
     }
   });
@@ -130,7 +130,7 @@ rightoTest('validation failure -> unknown column', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         knownColumn: ['required', 'string']
@@ -141,7 +141,7 @@ rightoTest('validation failure -> unknown column', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       knownColumn: 'test',
       unknownColumn: 'yes'
     }
@@ -163,7 +163,7 @@ rightoTest('create record -> with no schema', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test'
     }
   });
@@ -171,7 +171,7 @@ rightoTest('create record -> with no schema', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       unknownColumn: 'yes'
     }
   });
@@ -192,7 +192,7 @@ rightoTest('test inbuild schema field types', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         testString: ['required', 'string'],
@@ -205,7 +205,7 @@ rightoTest('test inbuild schema field types', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       testString: 'onetwothree',
       testNumber: 123,
       testArray: [1, 2, 3]
@@ -230,7 +230,7 @@ rightoTest('test inbuild schema field types when wrong', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         testString: ['required', 'string'],
@@ -243,7 +243,7 @@ rightoTest('test inbuild schema field types when wrong', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       testString: 123,
       testNumber: 'stirng',
       testArray: 'notarray'
@@ -268,7 +268,7 @@ rightoTest('test inbuild schema field types when null', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         always: ['string'],
@@ -282,7 +282,7 @@ rightoTest('test inbuild schema field types when null', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: {
+    body: {
       always: 'a',
       testString: null,
       testNumber: null,

@@ -9,7 +9,7 @@ function createTestCollection (callback) {
   callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']
@@ -33,7 +33,7 @@ rightoTest('list items in collection with default pagination', function * (t) {
   const createWithError = righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/test',
     method: 'post',
-    data: { test: 'testing' }
+    body: { test: 'testing' }
   });
 
   yield righto.handle(createWithError, (originalError, callback) => callback());

@@ -9,7 +9,7 @@ function createTestCollection (callback) {
   return callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
       schema: {
         test: ['required', 'string']

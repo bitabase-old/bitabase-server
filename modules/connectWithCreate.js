@@ -1,10 +1,11 @@
-const sqlite = require('sqlite-fp');
-const mkdirp = require('mkdirp');
 const path = require('path');
+const fs = require('fs');
+
+const sqlite = require('sqlite-fp');
 
 function connectWithCreate (filePath, callback) {
   const fileDirectory = path.dirname(filePath);
-  mkdirp(fileDirectory, function (error, result) {
+  fs.mkdir(fileDirectory, { recursive: true }, function (error, result) {
     if (error) {
       throw error;
     }

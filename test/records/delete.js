@@ -15,7 +15,7 @@ rightoTest('delete record by id not found', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'array']
@@ -44,7 +44,7 @@ rightoTest('delete record by id', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'string']
@@ -55,7 +55,7 @@ rightoTest('delete record by id', function * (t) {
   const testInsert = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/users',
     method: 'post',
-    data: {
+    body: {
       test: 'value'
     }
   });

@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const righto = require('righto');
-const mkdirp = require('mkdirp');
 const writeResponse = require('write-response');
 
 const writeResponseError = require('../../modules/writeResponseError');
@@ -13,7 +12,7 @@ module.exports = config => function (request, response, params) {
 
   const configFile = path.resolve(config.databasePath, params.databaseName);
 
-  const existingDirectory = righto(mkdirp, configFile);
+  const existingDirectory = righto(fs.mkdir, configFile, { recursive: true });
   const collectionConfigData = righto(fs.readdir, configFile, righto.after(existingDirectory));
 
   collectionConfigData(function (error, collections) {

@@ -13,7 +13,7 @@ module.exports = appConfig => function (request, response, params) {
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
 
   const recordsSql = queryStringToSql.records(`${params.collectionName}_errors`, 'https://localhost' + request.url);
-  const records = righto(sqlite.getAll, recordsSql.query, recordsSql.values, dbConnection);
+  const records = righto(sqlite.getAll, dbConnection, recordsSql.query, recordsSql.values);
 
   records(function (error, records) {
     if (error) {

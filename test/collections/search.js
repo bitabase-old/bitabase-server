@@ -36,7 +36,7 @@ rightoTest('list collections: one db', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'test',
 
       // Creating and updating items must conform to this schema
@@ -50,7 +50,7 @@ rightoTest('list collections: one db', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections/test',
     method: 'post',
-    data: {
+    body: {
       test: 'onse'
     }
   });

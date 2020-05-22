@@ -37,7 +37,7 @@ function insertRecordIntoDatabase (collectionName, data, dbConnection, callback)
 
   const preparedValuesWithId = [id, dataString, Date.now()];
 
-  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection);
+  const executedQuery = righto(sqlite.run, dbConnection, sql, preparedValuesWithId);
 
   const result = righto.mate({ ...data, id }, righto.after(executedQuery));
 

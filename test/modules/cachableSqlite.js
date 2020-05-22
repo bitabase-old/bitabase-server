@@ -23,7 +23,7 @@ rightoTest('database stays open', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'array']
@@ -55,7 +55,7 @@ rightoTest('database stays open', function * (t) {
   t.notEqual(firstConnection.timeOpened, secondConnection.timeOpened);
 });
 
-rightoTest('database stays open', function * (t) {
+rightoTest('database closes', function * (t) {
   t.plan(5);
 
   yield righto(reset);
@@ -67,7 +67,7 @@ rightoTest('database stays open', function * (t) {
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         test: ['required', 'array']

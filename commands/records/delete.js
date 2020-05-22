@@ -1,24 +1,20 @@
 const righto = require('righto');
 const sqlite = require('sqlite-fp');
-const finalStream = require('final-stream');
 const writeResponse = require('write-response');
+const ErrorWithObject = require('error-with-object');
 
 const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
 const getUser = require('../../modules/getUser');
-const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
-const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
 const handleAndLogError = require('../../modules/handleAndLogError');
-
-const uuidv4 = require('uuid').v4;
 
 function deleteRecordFromDatabase (collectionName, id, dbConnection, callback) {
   if (typeof id !== 'string') {
-    return callback({
+    return callback(new ErrorWithObject({
       statusCode: 500,
       friendly: { error: 'Unexpected Server Error' }
-    });
+    }));
   }
 
   const sql = `
@@ -29,13 +25,13 @@ function deleteRecordFromDatabase (collectionName, id, dbConnection, callback) {
   const preparedValuesWithId = [id];
 
   const recordSql = `SELECT data FROM "_${collectionName}" WHERE id = ?`;
-  const record = righto(sqlite.getOne, recordSql, [id], dbConnection)
-  .get(item => item || righto.fail({
+  const record = righto(sqlite.getOne, dbConnection, recordSql, [id])
+    .get(item => item || righto.fail({
       statusCode: 404,
       friendly: { error: 'Not Found' }
-  }));
+    }));
 
-  const executedQuery = righto(sqlite.run, sql, preparedValuesWithId, dbConnection, righto.after(record));
+  const executedQuery = righto(sqlite.run, dbConnection, sql, preparedValuesWithId, righto.after(record));
 
   const result = righto.mate({ id }, righto.after(executedQuery));
 
@@ -43,8 +39,6 @@ function deleteRecordFromDatabase (collectionName, id, dbConnection, callback) {
 }
 
 module.exports = appConfig => function (request, response, params) {
-  const data = righto(finalStream, request, JSON.parse);
-
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, collection.get('databaseFile'));
@@ -64,7 +58,7 @@ module.exports = appConfig => function (request, response, params) {
   });
   const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
 
-  const deletedRecord = righto(deleteRecordFromDatabase,  params.collectionName, params.recordId, dbConnection, righto.after(transducedData));
+  const deletedRecord = righto(deleteRecordFromDatabase, params.collectionName, params.recordId, dbConnection, righto.after(transducedData));
 
   deletedRecord(function (error, result) {
     if (error) {

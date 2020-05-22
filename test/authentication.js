@@ -9,7 +9,7 @@ function applyRulesToUsercollection (callback) {
   return callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections/users',
     method: 'put',
-    data: {
+    body: {
       name: 'users',
       schema: {
         username: ['required', 'string'],
@@ -36,7 +36,7 @@ function createUserCollection (callback) {
   callarestJson({
     url: 'http://localhost:8000/v1/databases/test/collections',
     method: 'post',
-    data: {
+    body: {
       name: 'users',
       schema: {
         username: ['required', 'string'],
@@ -57,7 +57,7 @@ function createUser (opts = {}, callback) {
   callarestJson({
     url: 'http://localhost:8000/v1/databases/test/records/users',
     method: 'post',
-    data: {
+    body: {
       username: opts.username || 'testuser',
       password: 'testpass',
       groups: opts.groups || []
@@ -119,7 +119,7 @@ rightoTest('create user collection as user with permission', function * (t) {
       password: 'testpass'
     },
     method: 'post',
-    data: {
+    body: {
       username: 'testuser2',
       password: 'testpass',
       groups: ['manage_users']
@@ -156,7 +156,7 @@ rightoTest('auth with invalid details', function * (t) {
       password: 'wrongpass'
     },
     method: 'post',
-    data: {
+    body: {
       username: 'testuser2',
       password: 'testpass',
       groups: ['manage_users']
