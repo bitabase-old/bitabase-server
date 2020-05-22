@@ -62,14 +62,26 @@ This is a very early attempt at the bitabase rest server.
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.2</a></td>
     <td>GET</td>
-    <td>/v1/databases/:databaseName/records/:collectionName</td>
+    <td>/v1/databases/:databaseName/records/:collectionName?query={}</td>
     <td>Search through records</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.3</a></td>
+    <td>DELETE</td>
+    <td>/v1/databases/:databaseName/records/:collectionName?query={}</td>
+    <td>Delete queried records</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.4</a></td>
     <td>GET</td>
     <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
     <td>Get a specific record</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.5</a></td>
+    <td>DELETE</td>
+    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
+    <td>Delete a specific record</td>
   </tr>
   <tr>
     <td colspan=4>
