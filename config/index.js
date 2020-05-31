@@ -1,17 +1,17 @@
 const path = require('path');
 
 const config = {
-  dev: {
-    port: 8000,
+  development: {
+    bind: '0.0.0.0:8000',
     databasePath: path.resolve(__dirname, '../data'),
     databaseKeepAlive: 1000
   },
 
   production: {
-    port: 10000,
+    bind: '0.0.0.0:10000',
     databasePath: '/var/data',
     databaseKeepAlive: 30000
   }
 };
 
-module.exports = config[process.env.NODE_ENV || 'dev'];
+module.exports = config[process.env.NODE_ENV || 'development'];

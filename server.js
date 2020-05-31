@@ -1,3 +1,8 @@
+if (process.env.NODE_ENV === 'development') {
+  require('trace')
+  require('clarify')
+}
+
 const http = require('http');
 const defaultConfig = require('./config');
 
@@ -8,6 +13,8 @@ function createServer (configOverrides = {}) {
     ...defaultConfig,
     ...configOverrides
   };
+
+  const [host, port] = config.bind.split(':')
 
   const router = createRouter();
   router.on('GET', '/v1/databases/:databaseName/collections', require('./commands/collections/search.js')(config));
@@ -27,13 +34,13 @@ function createServer (configOverrides = {}) {
   function start (callback) {
     server = http.createServer((request, response) => {
       router.lookup(request, response);
-    }).listen(config.port);
+    }).listen(port, host);
 
     server.on('listening', function () {
+      console.log(`[bitabase-server] Listening on ${host}:${port}`);
+
       callback && callback();
     });
-
-    console.log(`[bitabase-server] Listening on port ${config.port}`);
 
     return { start, stop };
   }
