@@ -1,4 +1,4 @@
-const presh = require('presh');
+const presh = require('markwylde-presh');
 const righto = require('righto');
 const ErrorWithObject = require('error-with-object');
 
