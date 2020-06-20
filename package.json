@@ -3,6 +3,9 @@
   "version": "1.14.0",
   "description": "Provides a REST data server database via http(s)",
   "main": "index.js",
+  "bin": {
+    "bitabase-server": "./index.js"
+  },
   "scripts": {
     "start": "node index",
     "test": "c8 -o /tmp node test"
