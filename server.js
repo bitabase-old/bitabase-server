@@ -1,20 +1,22 @@
+#!/usr/bin/env node
+
 if (process.env.NODE_ENV === 'development') {
-  require('trace')
-  require('clarify')
+  require('async-bugs');
 }
 
+const path = require('path');
 const http = require('http');
-const defaultConfig = require('./config');
 
+const setupServerSyncer = require('./modules/setupServerSyncer');
 const createRouter = require('find-my-way');
 
-function createServer (configOverrides = {}) {
-  const config = {
-    ...defaultConfig,
-    ...configOverrides
-  };
+function createServer (config = {}) {
+  config.bindHost = config.bindHost || '0.0.0.0';
+  config.bindPort = config.bindPort || 8000;
+  config.databasePath = config.databasePath || path.resolve('./data');
+  config.databaseKeepAlive = config.databaseKeepAlive || 1000;
 
-  const [host, port] = config.bind.split(':')
+  let serverSyncer;
 
   const router = createRouter();
   router.on('GET', '/v1/databases/:databaseName/collections', require('./commands/collections/search.js')(config));
@@ -32,12 +34,15 @@ function createServer (configOverrides = {}) {
 
   let server;
   function start (callback) {
+    serverSyncer = setupServerSyncer(config);
+
     server = http.createServer((request, response) => {
       router.lookup(request, response);
-    }).listen(port, host);
+    }).listen(config.bindPort, config.bindHost);
 
     server.on('listening', function () {
-      console.log(`[bitabase-server] Listening on ${host}:${port}`);
+      const address = server.address();
+      console.log(`[bitabase-server] Listening on ${address.address}:${address.port}`);
 
       callback && callback();
     });
@@ -48,6 +53,7 @@ function createServer (configOverrides = {}) {
   function stop (callback) {
     console.log('[bitabase-server] Shutting down');
     server && server.close();
+    serverSyncer && serverSyncer.stop && serverSyncer.stop();
     callback && callback();
   }
 

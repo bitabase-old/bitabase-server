@@ -6,7 +6,10 @@ const reset = require('../helpers/reset');
 const createServer = require('../../server');
 const rightoTest = require('../helpers/rightoTest');
 
-const config = require('../../config');
+const config = {
+  databasePath: path.resolve('../../data'),
+  databaseKeepAlive: 1000
+};
 const cachableSqlite = require('../../modules/cachableSqlite');
 
 const sleep = (ms, callback) => setTimeout(callback, ms);
@@ -36,7 +39,7 @@ rightoTest('database stays open', function * (t) {
     method: 'get'
   });
 
-  const firstConnection = yield righto(cachableSqlite.getConnection, dbFile);
+  const firstConnection = yield righto(cachableSqlite.getConnection, config, dbFile);
 
   yield righto(sleep, 1500);
 
@@ -44,7 +47,7 @@ rightoTest('database stays open', function * (t) {
     url: 'http://localhost:8000/v1/databases/test/records/users/nothere'
   });
 
-  const secondConnection = yield righto(cachableSqlite.getConnection, dbFile);
+  const secondConnection = yield righto(cachableSqlite.getConnection, config, dbFile);
 
   server.stop();
 
@@ -80,7 +83,7 @@ rightoTest('database closes', function * (t) {
     method: 'get'
   });
 
-  const firstConnection = yield righto(cachableSqlite.getConnection, dbFile);
+  const firstConnection = yield righto(cachableSqlite.getConnection, config, dbFile);
 
   yield righto(sleep, 500);
 
@@ -88,7 +91,7 @@ rightoTest('database closes', function * (t) {
     url: 'http://localhost:8000/v1/databases/test/records/users/nothere'
   });
 
-  const secondConnection = yield righto(cachableSqlite.getConnection, dbFile);
+  const secondConnection = yield righto(cachableSqlite.getConnection, config, dbFile);
 
   server.stop();
 

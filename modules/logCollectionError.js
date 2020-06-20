@@ -4,7 +4,7 @@ const sqlite = require('sqlite-fp');
 
 const { getConnection } = require('./cachableSqlite');
 
-function logCollectionError (collectionConfig, error, callback) {
+function logCollectionError (appConfig, collectionConfig, error, callback) {
   const id = uuidv4();
 
   const sqlTableCreate = `
@@ -30,7 +30,7 @@ function logCollectionError (collectionConfig, error, callback) {
   }
 
   const preparedValuesWithId = [id, dataString, Date.now()];
-  const dbConnection = righto(getConnection, collectionConfig.databaseFile);
+  const dbConnection = righto(getConnection, appConfig, collectionConfig.databaseFile);
   const executedBuildQuery = righto(sqlite.run, dbConnection, sqlTableCreate);
   const executedQuery = righto(sqlite.run, dbConnection, sql, preparedValuesWithId, righto.after(executedBuildQuery));
 

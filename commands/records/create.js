@@ -49,7 +49,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
-  const dbConnection = righto(getConnection, collection.get('databaseFile'));
+  const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
 
   const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
 
@@ -101,7 +101,7 @@ module.exports = appConfig => function (request, response, params) {
   presentableRecord(function (error, result) {
     if (error) {
       const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
-      return handleAndLogError(collection, error, response);
+      return handleAndLogError(appConfig, collection, error, response);
     }
 
     writeResponse(201, result, response);

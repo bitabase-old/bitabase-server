@@ -8,6 +8,50 @@
 
 This is a very early attempt at the bitabase rest server.
 
+## Getting Started
+### From the CLI
+Running the following:
+```bash
+npm install --global bitabase-server
+bitabase-server --help
+```
+
+Will output the below:
+```bash
+📦 Bitabase-Server - v1.14.0
+The scalable, sharded database engine.
+https://docs.bitabase.com
+
+The following commands and arguments are available when starting Bitabase
+
+Commands:
+  start                            Start the bitabase server stack
+    --bind-host                    Hostname to bind server to (default: 0.0.0.0)
+    --bind-port                    Port to bind server to (default: 8000)
+    --rqlite-addr                  Path to contact rqlite
+    --database-path                Where to store rqlite transaction log (default: /tmp/sqlite-bitabase)
+    --database-keep-alive          How long to keep sqlite database connections alive
+
+No command specified
+```
+
+You can start a bitabase server by running:
+
+```bash
+bitabase-server start
+```
+
+### From NodeJS
+```javascript
+const bitabaseServer = require('bitabase-server/server');
+
+const server = bitabaseServer({
+  bindHost: '0.0.0.0'
+});
+
+server.start();
+```
+
 ## Endpoints
 
 <table>
