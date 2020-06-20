@@ -18,7 +18,7 @@ bitabase-server --help
 
 Will output the below:
 ```bash
-📦 Bitabase-Server - v1.14.0
+📦 Bitabase-Server - v1.15.1
 The scalable, sharded database engine.
 https://docs.bitabase.com
 
