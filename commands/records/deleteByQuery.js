@@ -10,7 +10,7 @@ const handleAndLogError = require('../../modules/handleAndLogError');
 module.exports = appConfig => function (request, response, params) {
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
-  const dbConnection = righto(getConnection, collection.get('databaseFile'));
+  const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
 
   const countSql = queryStringToSql.count(params.collectionName, 'https://localhost' + request.url);
   const totalRecordCount = righto(sqlite.getOne, dbConnection, countSql.query, countSql.values);
@@ -24,7 +24,7 @@ module.exports = appConfig => function (request, response, params) {
     if (error) {
       error.query = recordsSql;
       const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
-      return handleAndLogError(collection, error, response);
+      return handleAndLogError(appConfig, collection, error, response);
     }
 
     writeResponse(200, {

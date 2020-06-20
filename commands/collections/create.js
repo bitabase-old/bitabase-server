@@ -22,11 +22,11 @@ function createTableFromSchema (collectionName, connection, callback) {
   );
 }
 
-function createCollectionDatabase (databasePath, databaseName, collectionConfig, callback) {
+function createCollectionDatabase (config, databaseName, collectionConfig, callback) {
   const collectionName = collectionConfig.name;
-  const filePath = path.resolve(databasePath, `${databaseName}/${collectionName}.db`);
+  const filePath = path.resolve(config.databasePath, `${databaseName}/${collectionName}.db`);
 
-  const dbConnection = righto(getConnection, filePath);
+  const dbConnection = righto(getConnection, config, filePath);
   const createdTable = righto(createTableFromSchema, collectionName, dbConnection);
 
   createdTable(function (error) {
@@ -38,8 +38,8 @@ function createCollectionDatabase (databasePath, databaseName, collectionConfig,
   });
 }
 
-function createConfigFile (databasePath, databaseName, collectionConfig, callback) {
-  const configFile = path.resolve(databasePath, `${databaseName}/${collectionConfig.name}.json`);
+function createConfigFile (config, databaseName, collectionConfig, callback) {
+  const configFile = path.resolve(config.databasePath, `${databaseName}/${collectionConfig.name}.json`);
   const configFolder = path.dirname(configFile);
   const folderExists = righto(fs.mkdir, configFolder, { recursive: true });
   const existingConfigFile = righto(fs.stat, configFile, righto.after(folderExists));
@@ -61,10 +61,10 @@ module.exports = config => function (request, response, params) {
   const validData = righto(validate, parsedData);
 
   const configFileCreated = righto(createConfigFile,
-    config.databasePath, params.databaseName, validData);
+    config, params.databaseName, validData);
 
   const createdCollection = righto(createCollectionDatabase,
-    config.databasePath, params.databaseName, validData, righto.after(configFileCreated));
+    config, params.databaseName, validData, righto.after(configFileCreated));
 
   createdCollection(function (error, result) {
     if (error) {

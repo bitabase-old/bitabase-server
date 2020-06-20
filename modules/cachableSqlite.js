@@ -1,11 +1,10 @@
-const config = require('../config');
 const connectWithCreate = require('./connectWithCreate');
 const sqlite = require('sqlite-fp');
 
 const cachedConnections = new Map();
 const clearTimers = new Map();
 
-function upClearTimer (databaseFile) {
+function upClearTimer (config, databaseFile) {
   const existingTimer = clearTimers.get(databaseFile);
   if (existingTimer) {
     clearTimeout(existingTimer);
@@ -18,15 +17,15 @@ function upClearTimer (databaseFile) {
   clearTimers.set(databaseFile, timer);
 }
 
-function getConnection (databaseFile, callback) {
+function getConnection (config, databaseFile, callback) {
   if (cachedConnections.get(databaseFile)) {
-    upClearTimer(databaseFile);
+    upClearTimer(config, databaseFile);
     return callback(null, cachedConnections.get(databaseFile));
   }
 
   connectWithCreate(databaseFile, function (error, connection) {
     connection.timeOpened = Date.now();
-    upClearTimer(databaseFile);
+    upClearTimer(config, databaseFile);
     if (connection) {
       cachedConnections.set(databaseFile, connection);
     }

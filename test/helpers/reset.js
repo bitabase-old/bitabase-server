@@ -1,6 +1,11 @@
 const fs = require('fs');
-const config = require('../../config');
+const path = require('path');
+
 const { flushCache } = require('../../modules/cachableSqlite');
+
+const config = {
+  databasePath: path.resolve(__dirname, '../../data')
+};
 
 module.exports = function (callback) {
   flushCache();
