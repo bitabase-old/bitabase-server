@@ -34,7 +34,7 @@ function createServer (config = {}) {
 
   let server;
   function start (callback) {
-    serverSyncer = setupServerSyncer(config);
+    serverSyncer = setupServerSyncer(config, 'server');
 
     server = http.createServer((request, response) => {
       router.lookup(request, response);
