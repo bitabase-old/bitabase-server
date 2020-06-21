@@ -28,7 +28,7 @@ async function setupServerSyncer (config, type) {
     if (!server) {
       await rqlite.run(dbConnection, 'INSERT INTO servers (type, host, lastPing) VALUES (?, ?, ?)', [type, hostAddress, Date.now()]);
     } else {
-      await rqlite.run(dbConnection, 'UPDATE servers SET lastPing = ? WHERE type = ? AND host = ?', [type, Date.now(), hostAddress]);
+      await rqlite.run(dbConnection, 'UPDATE servers SET lastPing = ? WHERE type = ? AND host = ?', [Date.now(), type, hostAddress]);
     }
   }
 
