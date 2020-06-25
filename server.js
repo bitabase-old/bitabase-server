@@ -12,6 +12,7 @@ const createRouter = require('find-my-way');
 
 function createServer (config = {}) {
   config.bindHost = config.bindHost || '0.0.0.0';
+  config.advertiseHost = config.advertiseHost || config.bindHost;
   config.bindPort = config.bindPort || 8000;
   config.databasePath = config.databasePath || path.resolve('./data');
   config.databaseKeepAlive = config.databaseKeepAlive || 1000;

@@ -19,6 +19,7 @@ The following commands and arguments are available when starting Bitabase
 
 Commands:
   start                            Start the bitabase server stack
+    --advertise-host               Hostname to advertise to others (default: --bind-host)
     --bind-host                    Hostname to bind server to (default: 0.0.0.0)
     --bind-port                    Port to bind server to (default: 8000)
     --rqlite-addr                  Path to contact rqlite
@@ -39,6 +40,7 @@ function main () {
 
     createServer({
       ...args,
+      advertiseHost: args['advertise-host'],
       bindHost: args['bind-host'],
       bindPort: args['bind-port'],
       rqliteAddr: args['rqlite-addr'],
