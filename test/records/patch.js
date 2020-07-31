@@ -5,7 +5,7 @@ const reset = require('../helpers/reset');
 const createServer = require('../../server');
 const rightoTest = require('../helpers/rightoTest');
 
-rightoTest('update a record returns new record', function * (t) {
+rightoTest('patch a record returns new record', function * (t) {
   t.plan(3);
 
   yield righto(reset);
@@ -35,7 +35,7 @@ rightoTest('update a record returns new record', function * (t) {
 
   const testUpdate = yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/example/' + testInsert.body.id,
-    method: 'put',
+    method: 'patch',
     body: {
       test1: 'second'
     }
@@ -43,13 +43,13 @@ rightoTest('update a record returns new record', function * (t) {
 
   t.equal(testUpdate.response.statusCode, 200);
   t.equal(testUpdate.body.test1, 'second');
-  t.notOk(testUpdate.body.test2);
+  t.equal(testUpdate.body.test2, 'first.b');
 
   yield righto(server.stop);
 });
 
-rightoTest('get updated record', function * (t) {
-  t.plan(2);
+rightoTest('get patched record', function * (t) {
+  t.plan(3);
 
   yield righto(reset);
   const server = createServer();
@@ -71,15 +71,16 @@ rightoTest('get updated record', function * (t) {
     url: 'http://localhost:8000/v1/databases/test/records/example',
     method: 'post',
     body: {
-      test1: 'first'
+      test1: 'first.a',
+      test2: 'first.b'
     }
   });
 
   yield righto(callarestJson, {
     url: 'http://localhost:8000/v1/databases/test/records/example/' + testInsert.body.id,
-    method: 'put',
+    method: 'patch',
     body: {
-      test1: 'second'
+      test1: 'second.a'
     }
   });
 
@@ -88,7 +89,8 @@ rightoTest('get updated record', function * (t) {
   });
 
   t.equal(testRead.response.statusCode, 200);
-  t.equal(testRead.body.test1, 'second');
+  t.equal(testRead.body.test1, 'second.a');
+  t.equal(testRead.body.test2, 'first.b');
 
   yield righto(server.stop);
 });

@@ -17,6 +17,7 @@ require('./logs/search');
 require('./records/create');
 require('./records/read');
 require('./records/update');
+require('./records/patch');
 require('./records/search');
 require('./records/delete');
 require('./records/deleteByQuery');

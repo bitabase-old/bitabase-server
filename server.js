@@ -29,6 +29,7 @@ function createServer (config = {}) {
   router.on('POST', '/v1/databases/:databaseName/records/:collectionName', require('./commands/records/create.js')(config));
   router.on('GET', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/read.js')(config));
   router.on('PUT', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/update.js')(config));
+  router.on('PATCH', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/patch.js')(config));
   router.on('DELETE', '/v1/databases/:databaseName/records/:collectionName/:recordId', require('./commands/records/delete.js')(config));
   router.on('DELETE', '/v1/databases/:databaseName/records/:collectionName', require('./commands/records/deleteByQuery.js')(config));
 
