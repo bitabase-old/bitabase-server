@@ -111,21 +111,21 @@ server.start();
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.3</a></td>
-    <td>PUT</td>
-    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
-    <td>Update a record</td>
-  </tr>
-  <tr>
-    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.4</a></td>
     <td>DELETE</td>
     <td>/v1/databases/:databaseName/records/:collectionName?query={}</td>
     <td>Delete queried records</td>
   </tr>
   <tr>
-    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.5</a></td>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.4</a></td>
     <td>GET</td>
     <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
     <td>Get a specific record</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.5</a></td>
+    <td>PUT</td>
+    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
+    <td>Update a specific record</td>
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.6</a></td>
