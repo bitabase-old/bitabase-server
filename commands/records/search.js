@@ -13,6 +13,9 @@ module.exports = appConfig => function (request, response, params) {
   const username = request.headers.username;
   const password = request.headers.password;
 
+  const parsedUrl = (new URL('http://localhost/' + request.url));
+  const fields = parsedUrl.searchParams.get('fields');
+
   const collection = righto(getCollection(appConfig), params.databaseName, params.collectionName);
 
   const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
@@ -22,7 +25,9 @@ module.exports = appConfig => function (request, response, params) {
   const recordsSql = queryStringToSql.records(params.collectionName, 'https://localhost' + request.url);
   const records = righto(sqlite.getAll, dbConnection, recordsSql.query, recordsSql.values);
 
-  const recordsData = records.get(records => records.map(record => JSON.parse(record.data)));
+  const recordsData = records.get(records => records.map(record => {
+    return fields ? record : JSON.parse(record.data);
+  }));
 
   const countSql = queryStringToSql.count(params.collectionName, 'https://localhost' + request.url);
   const totalRecordCount = righto(sqlite.getOne, dbConnection, countSql.query, countSql.values);

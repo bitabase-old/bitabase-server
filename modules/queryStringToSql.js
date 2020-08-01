@@ -35,10 +35,19 @@ function queryStringToSqlRecords (collectionName, url, type) {
   query = JSON.parse(query);
 
   const order = parsedUrl.searchParams.get('order');
+  const fields = parsedUrl.searchParams.get('fields');
+
+  let columns;
+  if (fields) {
+    const fieldList = JSON.parse(fields);
+
+    columns = fieldList.map(field => `json_extract(data, '$.${field}') as ${field}`);
+  }
 
   const usersQuery = {
     type: type || 'select',
     table: `_${collectionName}`,
+    columns,
     where: query,
     limit: parseInt(parsedUrl.searchParams.get('limit') || 10),
     offset: parseInt(parsedUrl.searchParams.get('offset') || 0),
