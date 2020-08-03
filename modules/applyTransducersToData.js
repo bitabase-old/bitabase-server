@@ -1,7 +1,7 @@
 const righto = require('righto');
 const evaluate = require('./evaluate');
 
-function applyTransducersToData (collectionConfig, scope, callback) {
+function applyTransducersToData (appConfig, collectionConfig, scope, callback) {
   const { transducers } = collectionConfig;
 
   if (!transducers || transducers.length === 0) {
@@ -17,7 +17,7 @@ function applyTransducersToData (collectionConfig, scope, callback) {
   const finalBody = righto.reduce(
     transducers,
     function (body, next) {
-      return righto(evaluate, next, {
+      return righto(evaluate, appConfig, next, {
         ...scope,
         reject,
         body

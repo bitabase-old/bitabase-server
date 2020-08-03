@@ -10,7 +10,7 @@ test('validateDataAgainstSchema -> with no schema', (t) => {
   }
 
   // schema, field, scope
-  validateDataAgainstSchema({}, {
+  validateDataAgainstSchema({}, {}, {
     body: {
       a: 1
     }
@@ -25,7 +25,7 @@ test('validateDataAgainstSchema -> syntax error', (t) => {
     t.notOk(result, 'result was not passed');
   }
 
-  validateDataAgainstSchema({
+  validateDataAgainstSchema({}, {
     schema: {
       firstName: ['{......WHOOPS..}']
     }
@@ -45,7 +45,7 @@ test('validateDataAgainstSchema -> return validation failure', (t) => {
     t.deepEqual(error.friendly.firstName, ['no thanks'], ['validation errors were returned']);
   }
 
-  validateDataAgainstSchema({
+  validateDataAgainstSchema({}, {
     schema: {
       firstName: ['"no thanks"']
     }

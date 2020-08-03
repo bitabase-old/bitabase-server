@@ -1,7 +1,3 @@
-// const righto = require('righto');
-// righto._debug = true;
-// righto._autotraceOnError = true;
-
 require('./modules/applyTransducersToData');
 require('./modules/cachableSqlite');
 require('./modules/queryStringToSql');
@@ -21,5 +17,3 @@ require('./records/patch');
 require('./records/search');
 require('./records/delete');
 require('./records/deleteByQuery');
-
-require('./authentication');

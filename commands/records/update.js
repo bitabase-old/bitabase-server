@@ -5,7 +5,7 @@ const writeResponse = require('write-response');
 
 const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
-const getUser = require('../../modules/getUser');
+
 const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
 const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
@@ -46,10 +46,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
 
-  const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
-
   const schemaScope = righto.resolve({
-    user,
     headers: request.headers,
     trace: 'records->update->schema',
     method: 'put',
@@ -60,10 +57,9 @@ module.exports = appConfig => function (request, response, params) {
       collectionName: params.collectionName
     }
   });
-  const validData = righto(validateDataAgainstSchema, collection.get('config'), schemaScope);
+  const validData = righto(validateDataAgainstSchema, appConfig, collection.get('config'), schemaScope);
 
   const transducerScope = righto.resolve({
-    user,
     headers: request.headers,
     trace: 'records->update->transducer',
     body: validData,
@@ -74,13 +70,12 @@ module.exports = appConfig => function (request, response, params) {
       collectionName: params.collectionName
     }
   });
-  const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
+  const transducedData = righto(applyTransducersToData, appConfig, collection.get('config'), transducerScope);
 
   const insertedRecord = righto(updateRecordIntoDatabase, params.collectionName, params.recordId, transducedData, dbConnection);
 
   const presenterScope = righto.resolve({
     record: insertedRecord,
-    user,
     headers: request.headers,
     trace: 'records->update->present',
     method: 'put',
@@ -91,7 +86,7 @@ module.exports = appConfig => function (request, response, params) {
     }
   });
 
-  const presentableRecord = righto(applyPresentersToData, collection.get('config'), presenterScope);
+  const presentableRecord = righto(applyPresentersToData, appConfig, collection.get('config'), presenterScope);
 
   presentableRecord(function (error, result) {
     if (error) {
