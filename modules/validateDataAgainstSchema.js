@@ -66,7 +66,7 @@ function checkSchemaValidations (schema, scope, errors, callback) {
 
     if (Object.keys(errors).length > 0) {
       return callback(new ErrorWithObject({
-        statusCode: 400,
+        statusCode: 422,
         friendly: errors
       }));
     }

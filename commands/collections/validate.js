@@ -25,7 +25,7 @@ function validate (data, callback) {
   if (validations.length > 0) {
     const result = Object.assign.apply(null, validations);
     callback && callback(new ErrorWithObject({
-      statusCode: 400,
+      statusCode: 422,
       message: result
     }));
     return result;

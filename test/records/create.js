@@ -147,7 +147,7 @@ rightoTest('validation failure -> unknown column', function * (t) {
     }
   });
 
-  t.equal(testInsert.response.statusCode, 400);
+  t.equal(testInsert.response.statusCode, 422);
   t.equal(testInsert.body.unknownColumn, 'unknown column');
 
   yield righto(server.stop);
@@ -250,7 +250,7 @@ rightoTest('test inbuild schema field types when wrong', function * (t) {
     }
   });
 
-  t.equal(testInsert.response.statusCode, 400);
+  t.equal(testInsert.response.statusCode, 422);
   t.deepEqual(testInsert.body.testString, ['must be string']);
   t.deepEqual(testInsert.body.testNumber, ['must be number']);
   t.deepEqual(testInsert.body.testArray, ['must be array']);
