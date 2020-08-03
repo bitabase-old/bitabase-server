@@ -1,6 +1,6 @@
 {
   "name": "bitabase-server",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "description": "Provides a REST data server database via http(s)",
   "main": "index.js",
   "bin": {
