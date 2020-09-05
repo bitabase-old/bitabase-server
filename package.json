@@ -26,7 +26,7 @@
     "rqlite-fp": "^2.10.1",
     "sqlite-fp": "^2.1.1",
     "uuid": "^8.3.0",
-    "write-response": "^1.2.2"
+    "write-response": "^1.2.3"
   },
   "devDependencies": {
     "async-bugs": "^1.1.0",
