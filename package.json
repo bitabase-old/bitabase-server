@@ -15,7 +15,7 @@
     "callarest": "^2.0.1",
     "chalk": "^4.1.0",
     "error-with-object": "^1.1.0",
-    "final-stream": "^1.1.0",
+    "final-stream": "^1.1.1",
     "find-my-way": "^3.0.4",
     "markwylde-presh": "^1.7.3",
     "minimist": "^1.2.5",
