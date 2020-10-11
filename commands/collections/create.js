@@ -16,7 +16,8 @@ function createTableFromSchema (collectionName, connection, callback) {
     `CREATE TABLE "_${collectionName}" (
       id VARCHAR (36) PRIMARY KEY NOT NULL UNIQUE,
       data TEXT,
-      date_created NUMBER
+      date_created NUMBER,
+      date_updated NUMBER
     )`,
     callback
   );

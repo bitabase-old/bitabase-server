@@ -5,14 +5,13 @@ const writeResponse = require('write-response');
 
 const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
+
 const applyPresentersToData = require('../../modules/applyPresentersToData');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
 const validateDataAgainstSchema = require('../../modules/validateDataAgainstSchema');
 const handleAndLogError = require('../../modules/handleAndLogError');
 
-const uuidv4 = require('uuid').v4;
-
-function insertRecordIntoDatabase (collectionName, data, dbConnection, callback) {
+function patchRecordIntoDatabase (collectionName, recordId, data, dbConnection, callback) {
   if (typeof data !== 'object') {
     return callback(new Error({
       statusCode: 500,
@@ -20,25 +19,22 @@ function insertRecordIntoDatabase (collectionName, data, dbConnection, callback)
     }));
   }
 
-  const id = uuidv4();
-
   const sql = `
-    INSERT INTO "_${collectionName}"
-    (id, data, date_created)
-    VALUES 
-    (?, ?, ?)
+    UPDATE "_${collectionName}"
+    SET data = ?, date_updated = ?
+    WHERE id = ?
   `;
 
   const dataString = JSON.stringify({
     ...data,
-    id
+    id: recordId
   });
 
-  const preparedValuesWithId = [id, dataString, Date.now()];
+  const preparedValuesWithId = [dataString, Date.now(), recordId];
 
   const executedQuery = righto(sqlite.run, dbConnection, sql, preparedValuesWithId);
 
-  const result = righto.mate({ ...data, id }, righto.after(executedQuery));
+  const result = righto.mate({ ...data, id: recordId }, righto.after(executedQuery));
 
   result(callback);
 }
@@ -50,11 +46,25 @@ module.exports = appConfig => function (request, response, params) {
 
   const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
 
+  const recordSql = `SELECT data FROM "_${params.collectionName}" WHERE id = ?`;
+  const record = righto(sqlite.getOne, dbConnection, recordSql, [params.recordId]);
+  const existingData = record
+    .get(record => {
+      return record ? JSON.parse(record.data) : righto.fail({
+        statusCode: 404, friendly: { error: 'Not Found' }
+      });
+    });
+  const recordData = righto.resolve({ data, existingData }).get(({ data, existingData }) => {
+    const obj = { ...existingData, ...data };
+    delete obj.id;
+    return obj;
+  });
+
   const schemaScope = righto.resolve({
     headers: request.headers,
-    trace: 'records->create->schema',
-    method: 'post',
-    body: data,
+    trace: 'records->patch->schema',
+    method: 'patch',
+    body: recordData,
     request: {
       method: request.method,
       databaseName: params.collectionName,
@@ -65,9 +75,9 @@ module.exports = appConfig => function (request, response, params) {
 
   const transducerScope = righto.resolve({
     headers: request.headers,
-    trace: 'records->create->transducer',
+    trace: 'records->patch->transducer',
     body: validData,
-    method: 'post',
+    method: 'patch',
     request: {
       method: request.method,
       databaseName: params.collectionName,
@@ -76,13 +86,13 @@ module.exports = appConfig => function (request, response, params) {
   });
   const transducedData = righto(applyTransducersToData, appConfig, collection.get('config'), transducerScope);
 
-  const insertedRecord = righto(insertRecordIntoDatabase, params.collectionName, transducedData, dbConnection);
+  const insertedRecord = righto(patchRecordIntoDatabase, params.collectionName, params.recordId, transducedData, dbConnection);
 
   const presenterScope = righto.resolve({
     record: insertedRecord,
     headers: request.headers,
-    trace: 'records->create->present',
-    method: 'post',
+    trace: 'records->update->present',
+    method: 'patch',
     request: {
       method: request.method,
       databaseName: params.collectionName,
@@ -98,6 +108,6 @@ module.exports = appConfig => function (request, response, params) {
       return handleAndLogError(appConfig, collection, error, response);
     }
 
-    writeResponse(201, result, response);
+    writeResponse(200, result, response);
   });
 };

@@ -168,6 +168,93 @@ rightoTest('list items in collection with order', function * (t) {
   t.equal(rest.body.items[0].test, 'testing99');
 });
 
+rightoTest('list items in collection with fields', function * (t) {
+  t.plan(5);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'test',
+      schema: {
+        test1: ['required', 'string'],
+        test2: ['required', 'string']
+      }
+    }
+  });
+
+  for (let i = 0; i < 10; i++) {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
+      method: 'post',
+      body: {
+        test1: 'test.1.' + i,
+        test2: 'test.2.' + i
+      }
+    });
+  }
+
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?fields=["test1"]',
+    method: 'get'
+  });
+
+  yield righto(server.stop);
+
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 10);
+  t.equal(rest.body.items.length, 10);
+  t.equal(rest.body.items[0].test1, 'test.1.0');
+  t.notOk(rest.body.items[0].test2);
+});
+
+rightoTest('list items in collection with fields, one incorrect', function * (t) {
+  t.plan(4);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'test',
+      schema: {
+        test1: ['required', 'string'],
+        test2: ['required', 'string']
+      }
+    }
+  });
+
+  for (let i = 0; i < 10; i++) {
+    yield righto(callarestJson, {
+      url: 'http://localhost:8000/v1/databases/test/records/test',
+      method: 'post',
+      body: {
+        test1: 'test.1.' + i,
+        test2: 'test.2.' + i
+      }
+    });
+  }
+
+  const rest = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test?fields=["testNOT"]',
+    method: 'get'
+  });
+
+  yield righto(server.stop);
+
+  t.equal(rest.response.statusCode, 200);
+  t.equal(rest.body.count, 10);
+  t.equal(rest.body.items.length, 10);
+  t.deepEqual(rest.body.items[0], {});
+});
+
 rightoTest('list items in collection with custom pagination', function * (t) {
   t.plan(4);
 

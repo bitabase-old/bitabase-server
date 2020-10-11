@@ -5,7 +5,6 @@ const ErrorWithObject = require('error-with-object');
 
 const { getConnection } = require('../../modules/cachableSqlite');
 const getCollection = require('../../modules/getCollection');
-const getUser = require('../../modules/getUser');
 const applyTransducersToData = require('../../modules/applyTransducersToData');
 const handleAndLogError = require('../../modules/handleAndLogError');
 
@@ -43,10 +42,7 @@ module.exports = appConfig => function (request, response, params) {
 
   const dbConnection = righto(getConnection, appConfig, collection.get('databaseFile'));
 
-  const user = righto(getUser(appConfig), dbConnection, request.headers.username, request.headers.password);
-
   const transducerScope = righto.resolve({
-    user,
     headers: request.headers,
     trace: 'records->delete->transducer',
     method: 'delete',
@@ -56,7 +52,7 @@ module.exports = appConfig => function (request, response, params) {
       collectionName: params.collectionName
     }
   });
-  const transducedData = righto(applyTransducersToData, collection.get('config'), transducerScope);
+  const transducedData = righto(applyTransducersToData, appConfig, collection.get('config'), transducerScope);
 
   const deletedRecord = righto(deleteRecordFromDatabase, params.collectionName, params.recordId, dbConnection, righto.after(transducedData));
 

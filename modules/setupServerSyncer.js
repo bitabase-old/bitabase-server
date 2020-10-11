@@ -8,12 +8,12 @@ const rqlite = {
 };
 
 async function setupServerSyncer (config, type) {
-  const hostAddress = `http://${config.advertiseHost}:${config.bindPort}`;
-
   if (!config.rqliteAddr) {
     console.log('Syncing Disabled: No rqlite address provided');
     return;
   }
+
+  const hostAddress = `http://${config.advertiseHost}:${config.bindPort}`;
 
   const dbConnection = await rqlite.connect(config.rqliteAddr, {
     retries: 10,
@@ -32,9 +32,56 @@ async function setupServerSyncer (config, type) {
     }
   }
 
-  const timer = setInterval(pingSelfInDatabase, 5000);
+  async function syncServers (type, servers) {
+    config[type + 's'] = config[type + 's'] || [];
 
-  pingSelfInDatabase();
+    servers.forEach(server => {
+      const withinPingLimits = Date.now() - server.lastPing < 15000;
+
+      if (!config[type + 's'].includes(server.host) && withinPingLimits) {
+        config[type + 's'].push(server.host);
+        console.log(`Discovered new ${type} server in data store: [${server.host}]`);
+      }
+
+      if (config[type + 's'].includes(server.host) && !withinPingLimits) {
+        const index = config[type + 's'].indexOf(server.host);
+        if (index !== -1) config[type + 's'].splice(index, 1);
+
+        console.log(`Removed ${type} server as last ping longer than 15 seconds: [${server.host}]`);
+      }
+    });
+
+    config[type + 's'].forEach(serverHost => {
+      if (!servers.find(server => server.host === serverHost)) {
+        const index = config[type + 's'].indexOf(serverHost);
+        if (index !== -1) config[type + 's'].splice(index, 1);
+
+        console.log(`Removed ${type} server no longer in data store: [${serverHost}]`);
+      }
+    });
+  }
+
+  async function syncLoop () {
+    pingSelfInDatabase();
+
+    let servers = [];
+    try {
+      servers = await rqlite.getAll(dbConnection, 'SELECT * FROM servers');
+    } catch (error) {
+      if (error.message.includes('no such table: servers')) {
+        return console.log('RQ_LITE Database not setup');
+      }
+      throw error;
+    }
+
+    syncServers('server', servers.filter(server => server.type === 'server'));
+    syncServers('manager', servers.filter(server => server.type === 'manager'));
+    syncServers('gateway', servers.filter(server => server.type === 'gateway'));
+  }
+
+  const timer = setInterval(syncLoop, 2000);
+
+  syncLoop();
 
   function stop (callback) {
     clearInterval(timer);

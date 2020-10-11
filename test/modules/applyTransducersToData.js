@@ -9,7 +9,7 @@ test('applyTransducersToData -> with no transducers', (t) => {
     t.ok(result);
   }
 
-  applyTransducersToData({}, {
+  applyTransducersToData({}, {}, {
     body: {
       a: 1
     }
@@ -24,7 +24,7 @@ test('applyTransducersToData -> ordered', (t) => {
     t.equal(result.a, 16);
   }
 
-  applyTransducersToData({
+  applyTransducersToData({}, {
     transducers: [
       '{...body a: body.a + 5}',
       '{...body a: body.a + 5}',
@@ -46,7 +46,7 @@ test('applyTransducersToData -> syntax error', (t) => {
     t.notOk(result, 'result was not passed');
   }
 
-  applyTransducersToData({
+  applyTransducersToData({}, {
     transducers: [
       '{......WHOOPS..}'
     ]
@@ -70,7 +70,7 @@ test('applyTransducersToData -> returns none object', (t) => {
     t.notOk(result, 'result was not passed');
   }
 
-  applyTransducersToData({
+  applyTransducersToData({}, {
     transducers: [
       '"Hello there"'
     ]

@@ -147,7 +147,7 @@ rightoTest('validation failure -> unknown column', function * (t) {
     }
   });
 
-  t.equal(testInsert.response.statusCode, 400);
+  t.equal(testInsert.response.statusCode, 422);
   t.equal(testInsert.body.unknownColumn, 'unknown column');
 
   yield righto(server.stop);
@@ -250,7 +250,7 @@ rightoTest('test inbuild schema field types when wrong', function * (t) {
     }
   });
 
-  t.equal(testInsert.response.statusCode, 400);
+  t.equal(testInsert.response.statusCode, 422);
   t.deepEqual(testInsert.body.testString, ['must be string']);
   t.deepEqual(testInsert.body.testNumber, ['must be number']);
   t.deepEqual(testInsert.body.testArray, ['must be array']);
@@ -291,6 +291,128 @@ rightoTest('test inbuild schema field types when null', function * (t) {
   });
 
   t.equal(testInsert.response.statusCode, 201);
+
+  yield righto(server.stop);
+});
+
+rightoTest('create record -> using sub queries -> getOne', function * (t) {
+  t.plan(3);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'lookups'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/lookups',
+    method: 'post',
+    body: {
+      key: 'a', value: 'aaa'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/lookups',
+    method: 'post',
+    body: {
+      key: 'b', value: 'bbb'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'test',
+      transducers: [`
+        {
+          ...body,
+          lookupValue: bitabase.getOne('lookups', {
+            query: {
+              key: 'b'
+            }
+          }).value}
+      `]
+    }
+  });
+
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
+    method: 'post',
+    body: {
+      unknownColumn: 'yes'
+    }
+  });
+
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.unknownColumn, 'yes');
+  t.equal(testInsert.body.lookupValue, 'bbb');
+
+  yield righto(server.stop);
+});
+
+rightoTest('create record -> using sub queries -> getAll', function * (t) {
+  t.plan(3);
+
+  yield righto(reset);
+  const server = createServer();
+  yield righto(server.start);
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'lookups'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/lookups',
+    method: 'post',
+    body: {
+      key: 'a', value: 'aaa'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/lookups',
+    method: 'post',
+    body: {
+      key: 'b', value: 'bbb'
+    }
+  });
+
+  yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/collections',
+    method: 'post',
+    body: {
+      name: 'test',
+      transducers: [`
+        {
+          ...body,
+          lookupValue: bitabase.getAll('lookups')[1].value}
+      `]
+    }
+  });
+
+  const testInsert = yield righto(callarestJson, {
+    url: 'http://localhost:8000/v1/databases/test/records/test',
+    method: 'post',
+    body: {
+      unknownColumn: 'yes'
+    }
+  });
+
+  t.equal(testInsert.response.statusCode, 201);
+  t.equal(testInsert.body.unknownColumn, 'yes');
+  t.equal(testInsert.body.lookupValue, 'bbb');
 
   yield righto(server.stop);
 });

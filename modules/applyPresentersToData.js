@@ -29,12 +29,12 @@ function transformArraysProperty (schema, record) {
     }, {});
 }
 
-function presentDataSingle (collectionConfig, scope, record, callback) {
+function presentDataSingle (appConfig, collectionConfig, scope, record, callback) {
   const { presenters } = collectionConfig;
 
   const presenterFunctions = (presenters || [])
     .map(presenter => {
-      return righto(evaluate, presenter, {
+      return righto(evaluate, appConfig, presenter, {
         ...scope,
         record
       });
@@ -55,16 +55,16 @@ function presentDataSingle (collectionConfig, scope, record, callback) {
   });
 }
 
-function applyPresentersToData (collectionConfig, scope, callback) {
+function applyPresentersToData (appConfig, collectionConfig, scope, callback) {
   if (Array.isArray(scope.record)) {
     const presenterJobs = scope.record.map(record => {
-      return righto(presentDataSingle, collectionConfig, scope, record);
+      return righto(presentDataSingle, appConfig, collectionConfig, scope, record);
     });
 
     return righto.all(presenterJobs)(callback);
   }
 
-  presentDataSingle(collectionConfig, scope, scope.record, callback);
+  presentDataSingle(appConfig, collectionConfig, scope, scope.record, callback);
 }
 
 module.exports = applyPresentersToData;

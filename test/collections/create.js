@@ -25,7 +25,7 @@ rightoTest('create item in collection with validation error on name', function *
 
   yield righto(server.stop);
 
-  t.equal(rest.response.statusCode, 400);
+  t.equal(rest.response.statusCode, 422);
   t.deepEqual(rest.body, {
     name: 'can only be alpha numeric'
   });
@@ -62,7 +62,7 @@ rightoTest('create item in collection with built in validation error', function 
 
   yield righto(server.stop);
 
-  t.equal(rest.response.statusCode, 400);
+  t.equal(rest.response.statusCode, 422);
   t.deepEqual(rest.body, {
     testString: ['must be string'],
     testRequired: ['required'],
@@ -134,7 +134,7 @@ rightoTest('create item in collection with custom validation error', function * 
 
   yield righto(server.stop);
 
-  t.equal(response.response.statusCode, 400);
+  t.equal(response.response.statusCode, 422);
   t.deepEqual(response.body, {
     test: ['must be something']
   });

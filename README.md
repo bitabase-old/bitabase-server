@@ -123,6 +123,18 @@ server.start();
   </tr>
   <tr>
     <td><a href="https://www.github.com/bitabase/bitabase-manager">2.5</a></td>
+    <td>PUT</td>
+    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
+    <td>Update a specific record</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.6</a></td>
+    <td>PATCH</td>
+    <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
+    <td>Partially update a specific record</td>
+  </tr>
+  <tr>
+    <td><a href="https://www.github.com/bitabase/bitabase-manager">2.7</a></td>
     <td>DELETE</td>
     <td>/v1/databases/:databaseName/records/:collectionName/:recordId</td>
     <td>Delete a specific record</td>

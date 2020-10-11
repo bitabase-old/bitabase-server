@@ -3,7 +3,7 @@ const ErrorWithObject = require('error-with-object');
 
 const evaluate = require('./evaluate');
 
-function checkFieldValidation (schema, field, scope, callback) {
+function checkFieldValidation (appConfig, schema, field, scope, callback) {
   if (!schema[field]) {
     return callback(null, { [field]: 'unknown column' });
   }
@@ -25,7 +25,7 @@ function checkFieldValidation (schema, field, scope, callback) {
       checkFn = 'value == null || getType(value) == "Array" ? null : "must be array"';
     }
 
-    return righto(evaluate, checkFn, {
+    return righto(evaluate, appConfig, checkFn, {
       ...scope,
       field,
       value: scope.body[field]
@@ -47,14 +47,14 @@ function checkFieldValidation (schema, field, scope, callback) {
   });
 }
 
-function checkSchemaValidations (schema, scope, errors, callback) {
+function checkSchemaValidations (appConfig, schema, scope, errors, callback) {
   if (!schema) {
     return callback();
   }
 
   const schemaValidations = Object.keys(scope.body)
     .map(field => {
-      return righto(checkFieldValidation, schema, field, scope);
+      return righto(checkFieldValidation, appConfig, schema, field, scope);
     });
 
   righto.all(schemaValidations)(function (error, results) {
@@ -66,7 +66,7 @@ function checkSchemaValidations (schema, scope, errors, callback) {
 
     if (Object.keys(errors).length > 0) {
       return callback(new ErrorWithObject({
-        statusCode: 400,
+        statusCode: 422,
         friendly: errors
       }));
     }
@@ -96,7 +96,7 @@ function checkForUnknownFields (schema, body) {
   return errors;
 }
 
-function validateDataAgainstSchema (collectionConfig, scope, callback) {
+function validateDataAgainstSchema (appConfig, collectionConfig, scope, callback) {
   if (!collectionConfig) {
     throw new Error('validateDataAgainstSchema must be called with a collectionConfig');
   }
@@ -112,7 +112,7 @@ function validateDataAgainstSchema (collectionConfig, scope, callback) {
     ...checkForRequiredFields(schema, scope.body)
   };
 
-  const schemaValidated = righto(checkSchemaValidations, schema, scope, errors);
+  const schemaValidated = righto(checkSchemaValidations, appConfig, schema, scope, errors);
   const result = righto.mate(scope.body, righto.after(schemaValidated));
 
   result(callback);
